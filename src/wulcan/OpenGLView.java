@@ -15,6 +15,7 @@ import org.lwjgl.system.MemoryStack;
 
 public class OpenGLView implements View2D {
 	
+	private boolean isAvailable = false;
 	private long window;
 	private int heigth;
 	private int width;
@@ -22,20 +23,25 @@ public class OpenGLView implements View2D {
 	public OpenGLView(int heigth, int width) {
 		this.width = width;
 		this.heigth = heigth;
+		this.isAvailable = true;
 		this.init();
 	}
 	
-	public void drawPoint(Point2D p, Color32 c) {
+	public boolean drawPoint(Point2D p, Color32 c) {
+		if(this.isAvailable) {
 			glBegin(GL_POINTS);
 			
 			glColor3d(c.getR(), c.getG(), c.getB());
             glVertex2d(p.getX(), p.getY());
 	        
             glEnd();
+		}
+		return this.isAvailable;
 	}
 	
 
-	public void drawTriangle(Point2D p1, Point2D p2, Point2D p3, Color32 c) {			
+	public boolean drawTriangle(Point2D p1, Point2D p2, Point2D p3, Color32 c) {			
+		if(this.isAvailable) {
 			glBegin(GL_TRIANGLES);
 
 			glColor3d(c.getR(), c.getG(), c.getB());
@@ -43,7 +49,13 @@ public class OpenGLView implements View2D {
             glVertex2d(p2.getX(), p2.getY());
             glVertex2d(p3.getX(), p3.getY());
 
-			glEnd();			
+			glEnd();
+		}
+		return this.isAvailable;
+	}
+	
+	public boolean isAvailable() {
+		return this.isAvailable;
 	}
 	
 	private void init() {
@@ -112,18 +124,24 @@ public class OpenGLView implements View2D {
 	}
 	
 	public void nextFrame() {
-		glfwSwapBuffers(window);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glfwPollEvents();
+		if (!glfwWindowShouldClose(window)) {
+			glfwSwapBuffers(window);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glfwPollEvents();
+		} else
+			this.close();
 	}
 
 	public void close() {
-		//Free the window callbacks and destroy the window
-		glfwFreeCallbacks(window);
-		glfwDestroyWindow(window);
+		if(this.isAvailable) {
+			//Free the window callbacks and destroy the window
+			glfwFreeCallbacks(window);
+			glfwDestroyWindow(window);
 
-		// Terminate GLFW and free the error callback
-		glfwTerminate();
-		glfwSetErrorCallback(null).free();
+			// Terminate GLFW and free the error callback
+			glfwTerminate();
+			glfwSetErrorCallback(null).free();
+			this.isAvailable = false;
+		}
 	}
 }

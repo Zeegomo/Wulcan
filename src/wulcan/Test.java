@@ -9,8 +9,8 @@ public class Test {
 		Color32 c = new Color32(1.0, 0.0, 1.0);
 		long start = System.nanoTime();
 		View2D view = new OpenGLView(600, 300);
-		while(System.nanoTime() - start < 6000000000L) {
-			view.drawTriangle(p1, p2, p3, c);
+		while(System.nanoTime() - start < 6000000000L && view.drawTriangle(p1, p2, p3, c)) {
+			//view.drawTriangle(p1, p2, p3, c);
 			p1.add(0.01);
 			p2.add(0.01);
 			p3.add(0.01);
