@@ -7,7 +7,6 @@ public class Test {
 		Point2D p2 = new Point2D(0, 0);
 		Point2D p3 = new Point2D(-1, -1);
 		Color32 c = new Color32(1.0, 0.0, 1.0);
-		long start = System.nanoTime();
 		View2D view = new OpenGLView(600, 300);
 		while(view.drawTriangle(p1, p2, p3, c)) {
 			//view.drawTriangle(p1, p2, p3, c);
