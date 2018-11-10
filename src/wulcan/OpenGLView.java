@@ -29,11 +29,10 @@ public class OpenGLView implements View2D {
 	
 	public boolean drawPoint(Point2D p, Color32 c) {
 		if(this.isAvailable) {
+			glPointSize(5);
 			glBegin(GL_POINTS);
-			
 			glColor3d(c.getR(), c.getG(), c.getB());
             glVertex2d(p.getX(), p.getY());
-	        
             glEnd();
 		}
 		return this.isAvailable;
@@ -43,12 +42,10 @@ public class OpenGLView implements View2D {
 	public boolean drawTriangle(Point2D p1, Point2D p2, Point2D p3, Color32 c) {			
 		if(this.isAvailable) {
 			glBegin(GL_TRIANGLES);
-
 			glColor3d(c.getR(), c.getG(), c.getB());
             glVertex2d(p1.getX(), p1.getY());
             glVertex2d(p2.getX(), p2.getY());
             glVertex2d(p3.getX(), p3.getY());
-
 			glEnd();
 		}
 		return this.isAvailable;
@@ -67,13 +64,13 @@ public class OpenGLView implements View2D {
 		if ( !glfwInit() )
 			throw new IllegalStateException("Unable to initialize GLFW");
 
-		// Configure GLFWhttps://www.reddit.com/r/opengl/comments/4rtee7/opengl_window_closing_immediately/
+		// Configure GLFW
 		glfwDefaultWindowHints(); // optional, the current window hints are already the default
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
 		
 		
-		//require OpenGL >= 3.2
+		//require OpenGL 1.2 compatible
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 
