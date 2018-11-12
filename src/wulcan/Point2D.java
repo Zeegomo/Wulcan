@@ -1,8 +1,8 @@
 package wulcan;
 
 public class Point2D {
-	private double x;
-	private double y;
+	public double x;
+	public double y;
 	
 	
 	public Point2D(final double x, final double y) {

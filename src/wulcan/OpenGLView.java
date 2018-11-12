@@ -17,19 +17,27 @@ public class OpenGLView implements View2D {
 	
 	private boolean isAvailable = false;
 	private long window;
-	private int heigth;
+	private int height;
 	private int width;
 
-	public OpenGLView(int heigth, int width) {
+	public OpenGLView(int height, int width) {
 		this.width = width;
-		this.heigth = heigth;
+		this.height = height;
 		this.isAvailable = true;
 		this.init();
 	}
 	
+	public int getHeight() {
+		return this.height;
+	}
+
+	public int getWidth() {
+		return this.width;
+	}
+
 	public boolean drawPoint(Point2D p, Color32 c) {
 		if(this.isAvailable) {
-			glPointSize(5);
+			glPointSize(2);
 			glBegin(GL_POINTS);
 			glColor3d(c.getR(), c.getG(), c.getB());
             glVertex2d(p.getX(), p.getY());
@@ -38,6 +46,16 @@ public class OpenGLView implements View2D {
 		return this.isAvailable;
 	}
 	
+	public boolean drawLine(Point2D p1, Point2D p2, Color32 c) {
+		if(this.isAvailable) {
+			glBegin(GL_LINES);
+			glColor3d(c.getR(), c.getG(), c.getB());
+            glVertex2d(p1.getX(), p1.getY());
+            glVertex2d(p2.getX(), p2.getY());
+            glEnd();
+		}
+		return this.isAvailable;
+	}
 
 	public boolean drawTriangle(Point2D p1, Point2D p2, Point2D p3, Color32 c) {			
 		if(this.isAvailable) {
@@ -70,13 +88,13 @@ public class OpenGLView implements View2D {
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
 		
 		
-		//require OpenGL 1.2 compatible
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+		//require OpenGL 2.1 compatible
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
 
 		// Create the window
-		window = glfwCreateWindow(heigth, width, "Hello World!", NULL, NULL);
+		window = glfwCreateWindow(height, width, "Hello World!", NULL, NULL);
 		if ( window == NULL )
 			throw new RuntimeException("Failed to create the GLFW window");
 
@@ -86,7 +104,18 @@ public class OpenGLView implements View2D {
 				glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
 		});
 
-		// Get the thread stack and push a new frame
+		updateSize();
+
+		// Get the resolution of the primary monitor
+		GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+		glfwSetWindowPos(
+			window,
+			(vidmode.width() - this.width) / 2,
+			(vidmode.height() - this.height) / 2
+		);
+
+		/*// Get the thread stack and push a new frame
 		try ( MemoryStack stack = stackPush() ) {
 			IntBuffer pWidth = stack.mallocInt(1); // int*
 			IntBuffer pHeight = stack.mallocInt(1); // int*
@@ -103,7 +132,7 @@ public class OpenGLView implements View2D {
 				(vidmode.width() - pWidth.get(0)) / 2,
 				(vidmode.height() - pHeight.get(0)) / 2
 			);
-		} // the stack frame is popped automatically
+		} // the stack frame is popped automatically*/
 
 		// Make the OpenGL context current
 		glfwMakeContextCurrent(window);
@@ -125,8 +154,26 @@ public class OpenGLView implements View2D {
 			glfwSwapBuffers(window);
 			glClear(GL_COLOR_BUFFER_BIT);
 			glfwPollEvents();
+			if(updateSize()) {
+				glViewport(0, 0, this.width, this.height);
+			}
+
 		} else
 			this.close();
+	}
+
+	private boolean updateSize() {
+		boolean changed = false;
+		try ( MemoryStack stack = stackPush() ) {
+			IntBuffer pWidth = stack.mallocInt(1); // int*
+			IntBuffer pHeight = stack.mallocInt(1); // int*
+
+			glfwGetWindowSize(window, pWidth, pHeight);
+			changed = this.width != pWidth.get(0) || this.height != pHeight.get(0);
+			this.width = pWidth.get(0);
+			this.height = pHeight.get(0);
+		}
+		return changed;
 	}
 
 	public void close() {
