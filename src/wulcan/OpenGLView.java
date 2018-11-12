@@ -170,8 +170,10 @@ public class OpenGLView implements View2D {
 
 			glfwGetWindowSize(window, pWidth, pHeight);
 			changed = this.width != pWidth.get(0) || this.height != pHeight.get(0);
-			this.width = pWidth.get(0);
-			this.height = pHeight.get(0);
+			if(changed) {
+				this.width = pWidth.get(0);
+				this.height = pHeight.get(0);
+			}
 		}
 		return changed;
 	}
