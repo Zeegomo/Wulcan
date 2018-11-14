@@ -14,7 +14,7 @@ public class Test {
 	public static void main(String[] args) {
 		Mesh monkey = new Mesh();
 		try {
-			monkey = Mesh.loadFromOBJ(new FileReader(new File("monkey.obj")));
+			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/monkey.obj")));
 		} catch (IOException e) {
 			System.err.println("Error loading file!");
 		}
