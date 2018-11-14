@@ -39,6 +39,8 @@ public class Test {
 				new Point3D(-1,  1, 6),
 		};
 		
+		System.out.println(new Point3D(2, 3, 4).cross(new Point3D(6, 2, 7)));
+
 		Triangle3D[] mesh = {
 			// Front
 			new Triangle3D(points[0], points[1], points[3]),
@@ -68,7 +70,21 @@ public class Test {
 		while(view.isAvailable()) {
 			projector.setAspectRatio(view.getWidth(), view.getHeight());
 			for (int i = 0; i < mesh.length; i++) {
-				view.drawTriangle(projector.project(mesh[i]), color, false);
+				Point3D center = mesh[i].getVertex(0).add(mesh[i].getVertex(1)).add(mesh[i].getVertex(2)).div(3);
+				Point3D normal = mesh[i].getNormal();
+				Point3D lamp = new Point3D(0, 5, 0);
+				final double dotProduct = mesh[i].getNormal().dot(center);
+				if(normal.dot(center) < 0) {
+					Color32 shade = color.shade(-dotProduct / center.magnitude());
+					view.drawTriangle(projector.project(mesh[i]), shade, true);
+
+					// Draw normal
+//					view.drawLine(
+//							projector.project(center),
+//							projector.project(center.add(mesh[i].getNormal())),
+//							new Color32(0, 0, 1)
+//							);
+				}
 				
 				for (int j = 0; j < 3; j++) {
 					mesh[i].setVertex(j, transform.mult(mesh[i].getVertex(j)));
