@@ -17,58 +17,64 @@ public class Test {
 		{0, 0, 0, 1}
 	});
 
-	public static void main(String[] args) throws InterruptedException {
-		Point2D p1 = new Point2D(-1.0, 0.0);
-		Point2D p2 = new Point2D(0, 0);
-		Point2D p3 = new Point2D(-1, -1);
-		Color32 c = new Color32(1.0, 0.0, 1.0);
-
-		double fov = 3.1415/2;
-
-		Point3D[] points = new Point3D[8];
-		Point2D[] points_p = new Point2D[8];
-		points[0] = new Point3D(1,-1,4);
-		points[1] = new Point3D(1,1,4);
-		points[2] = new Point3D(-1,-1,4);
-		points[3] = new Point3D(-1,1,4);
-		points[4] = new Point3D(1,-1,6);
-		points[5] = new Point3D(1,1,6);
-		points[6] = new Point3D(-1,-1,6);
-		points[7] = new Point3D(-1,1,6);
+	public static void main(String[] args) {
+		final Color32 color = new Color32(1.0, 0.0, 1.0);
+		final double fov = 3.1415/2;
+		
+		Matrix4x4 transform = new Matrix4x4(translation);
+		transform = rotation.mult(transform);
+		translation.set(2, 3, 5);
+		transform = translation.mult(transform);
+		translation.set(2, 3, -5);
+		
+		Point3D[] points = {
+				new Point3D( 1,  1, 4),
+				new Point3D( 1, -1, 4),
+				new Point3D(-1, -1, 4),
+				new Point3D(-1,  1, 4),
+				
+				new Point3D( 1,  1, 6),
+				new Point3D( 1, -1, 6),
+				new Point3D(-1, -1, 6),
+				new Point3D(-1,  1, 6),
+		};
+		
+		Triangle3D[] mesh = {
+			// Front
+			new Triangle3D(points[0], points[1], points[3]),
+			new Triangle3D(points[1], points[2], points[3]),
+			// Back
+			new Triangle3D(points[7], points[5], points[4]),
+			new Triangle3D(points[7], points[6], points[5]),
+			// Right
+			new Triangle3D(points[1], points[0], points[5]),
+			new Triangle3D(points[0], points[4], points[5]),
+			// Left
+			new Triangle3D(points[3], points[2], points[6]),
+			new Triangle3D(points[3], points[6], points[7]),
+			// Top
+			new Triangle3D(points[4], points[0], points[3]),
+			new Triangle3D(points[4], points[3], points[7]),
+			// Bottom
+			new Triangle3D(points[5], points[2], points[1]),
+			new Triangle3D(points[5], points[6], points[2]),
+		};
 
 		long time = System.nanoTime();
 		long fps = 0;
 		View2D view = new OpenGLView(1200, 800);
+		Projector projector = new Projector(fov, 1);
 
 		while(view.isAvailable()) {
-			for (int i = 0; i < 8; i++) {
-				Matrix4x4 transform = new Matrix4x4(translation);
-				transform = rotation.mult(transform);
-				translation.set(2, 3, 5);
-				transform = translation.mult(transform);
-				translation.set(2, 3, -5);
-				points[i] = transform.mult(points[i]);
-
-				points_p[i] = new Point2D(points[i].x, points[i].y);
-				points_p[i].x = points_p[i].x * view.getHeight() / view.getWidth();
-				points_p[i].x = points_p[i].x / (Math.tan(fov/2)*(points[i].z));
-				points_p[i].y = points_p[i].y / (Math.tan(fov/2)*(points[i].z));
+			projector.setAspectRatio(view.getWidth(), view.getHeight());
+			for (int i = 0; i < mesh.length; i++) {
+				view.drawTriangle(projector.project(mesh[i]), color, false);
+				
+				for (int j = 0; j < 3; j++) {
+					mesh[i].setVertex(j, transform.mult(mesh[i].getVertex(j)));
+				}
 			}
-			view.drawLine(points_p[0], points_p[1], c);
-			view.drawLine(points_p[0], points_p[2], c);
-			view.drawLine(points_p[2], points_p[3], c);
-			view.drawLine(points_p[1], points_p[3], c);
-			view.drawLine(points_p[4], points_p[5], c);
-			view.drawLine(points_p[4], points_p[6], c);
-			view.drawLine(points_p[6], points_p[7], c);
-			view.drawLine(points_p[5], points_p[7], c);
-			view.drawLine(points_p[0], points_p[4], c);
-			view.drawLine(points_p[1], points_p[5], c);
-			view.drawLine(points_p[6], points_p[2], c);
-			view.drawLine(points_p[3], points_p[7], c);
 
-//			Thread.sleep(1000);
-			
 			if (System.nanoTime() - time > 1000000000) {
 				time = System.nanoTime();
 				System.out.println("fps: "+ fps);
