@@ -27,6 +27,14 @@ public class Mesh {
 		return result;
 	}
 
+	public Point3D getCenter() {
+		return this.faces.stream()
+				.map(f -> f.getCenter())
+				.reduce((p1, p2) -> p1.add(p2))
+				.get()
+				.div(this.faces.size());
+	}
+
 	public static Mesh loadFromOBJ(final Reader input) throws IOException {
 		Mesh result = new Mesh();
 		
