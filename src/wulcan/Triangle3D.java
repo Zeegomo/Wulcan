@@ -11,6 +11,12 @@ public class Triangle3D {
 		return this.vertices[index];
 	}
 	
+	public Point3D getNormal() {
+		final Point3D a = vertices[0].sub(vertices[1]);
+		final Point3D b = vertices[0].sub(vertices[2]);
+		return a.cross(b).normalize();
+	}
+
 	public void setVertex(final int index, final Point3D value) {
 		this.vertices[index] = value;
 	}
