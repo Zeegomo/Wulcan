@@ -65,6 +65,7 @@ public class Test {
 		long time = System.nanoTime();
 		long fps = 0;
 		View2D view = new OpenGLView(1200, 800);
+		Point3D light = new Point3D(0,0,1);
 		Projector projector = new Projector(fov, 1);
 
 		while(view.isAvailable()) {
@@ -73,9 +74,9 @@ public class Test {
 				Point3D center = mesh[i].getVertex(0).add(mesh[i].getVertex(1)).add(mesh[i].getVertex(2)).div(3);
 				Point3D normal = mesh[i].getNormal();
 				Point3D lamp = new Point3D(0, 5, 0);
-				final double dotProduct = mesh[i].getNormal().dot(center);
+				final double dotProduct = mesh[i].getNormal().dot(light);
 				if(normal.dot(center) < 0) {
-					Color32 shade = color.shade(-dotProduct / center.magnitude());
+					Color32 shade = color.shade(-dotProduct / light.magnitude());
 					view.drawTriangle(projector.project(mesh[i]), shade, true);
 
 					// Draw normal
