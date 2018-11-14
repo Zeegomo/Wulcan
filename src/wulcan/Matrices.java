@@ -1,6 +1,15 @@
 package wulcan;
 
 public class Matrices {
+	static public Matrix4x4 buildIdentity() {
+		return new Matrix4x4(new double[][] {
+			{1, 0, 0, 0},
+			{0, 1, 0, 0 },
+			{0, 0, 1, 0},
+			{0, 0, 0, 1}
+		});
+	}
+
 	static public Matrix4x4 buildTranslate(final double x, final double y, final double z) {
 		return new Matrix4x4(new double[][] {
 			{1, 0, 0, x},
