@@ -17,6 +17,10 @@ public class Triangle3D {
 		return a.cross(b).normalize();
 	}
 
+	public Point3D getCenter() {
+		return this.getVertex(0).add(this.getVertex(1)).add(this.getVertex(2)).div(3);
+	}
+
 	public void setVertex(final int index, final Point3D value) {
 		this.vertices[index] = value;
 	}

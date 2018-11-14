@@ -16,6 +16,17 @@ public class Mesh {
 		this.faces.addAll(faces);
 	}
 	
+	public Mesh transform(final Matrix4x4 trans) {
+		Mesh result = new Mesh();
+
+		for (final Triangle3D face : this.faces) {
+			result.faces.add(new Triangle3D(trans.mult(face.getVertex(0)), trans.mult(face.getVertex(1)),
+					trans.mult(face.getVertex(2))));
+		}
+
+		return result;
+	}
+
 	public static Mesh loadFromOBJ(final Reader input) throws IOException {
 		Mesh result = new Mesh();
 		
