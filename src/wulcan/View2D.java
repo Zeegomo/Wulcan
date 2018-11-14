@@ -10,7 +10,10 @@ public interface View2D{
 
 	public boolean drawLine(Point2D p1, Point2D p2, Color32 c);
 
-	public boolean drawTriangle(Point2D p1, Point2D p2, Point2D p3, Color32 c);
+	public boolean drawTriangle(Triangle2D triangle, Color32 c, boolean filled);
+	default public boolean drawTriangle(Triangle2D triangle, Color32 c) {
+		return drawTriangle(triangle, c, true);
+	}
 
 	public boolean isAvailable();
 

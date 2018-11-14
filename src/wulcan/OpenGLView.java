@@ -57,13 +57,12 @@ public class OpenGLView implements View2D {
 		return this.isAvailable;
 	}
 
-	public boolean drawTriangle(Point2D p1, Point2D p2, Point2D p3, Color32 c) {			
+	public boolean drawTriangle(Triangle2D triangle, Color32 c, boolean filled) {
 		if(this.isAvailable) {
-			glBegin(GL_TRIANGLES);
+			glBegin(filled ? GL_TRIANGLES : GL_LINE_LOOP);
 			glColor3d(c.getR(), c.getG(), c.getB());
-            glVertex2d(p1.getX(), p1.getY());
-            glVertex2d(p2.getX(), p2.getY());
-            glVertex2d(p3.getX(), p3.getY());
+			for (int i = 0; i < 3; i++)
+				glVertex2d(triangle.getVertex(i).getX(), triangle.getVertex(i).getY());
 			glEnd();
 		}
 		return this.isAvailable;
