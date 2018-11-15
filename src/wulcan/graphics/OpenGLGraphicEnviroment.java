@@ -23,10 +23,16 @@ public class OpenGLGraphicEnviroment implements GraphicEnviroment {
 			this.projector.translateCamera(new Point3D(0,0,0.1));
 		});
 		this.controller.setCallback(Key.A, () -> {
-			this.projector.translateCamera(new Point3D(-0.1,0,0));
+			this.projector.translateCamera(new Point3D(0.1,0,0));
 		});
 		this.controller.setCallback(Key.D, () -> {
-			this.projector.translateCamera(new Point3D(0.1,0,0));
+			this.projector.translateCamera(new Point3D(-0.1,0,0));
+		});
+		this.controller.setCallback(Key.E, () -> {
+			this.projector.rotateCamera(new Point3D(0,-0.1,0));
+		});
+		this.controller.setCallback(Key.Q, () -> {
+			this.projector.rotateCamera(new Point3D(0,0.1,0));
 		});
 		this.view.setController(this.controller);
 	}
