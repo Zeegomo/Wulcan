@@ -10,17 +10,18 @@ import wulcan.graphics.*;
 public class Test {
 	static final Color32 color = new Color32(1.0, 0.0, 1.0);
 	static final double fov = 3.1415/2;
-	static final GraphicEnviroment enviroment = new OpenGLGraphicEnviroment();
-	static final View2D view = enviroment.getView();
-	static final InputController controller = enviroment.getController();
 	static final Point3D light = new Point3D(0,0,1);
 	static final Projector projector = new Projector(fov, 1);
+	static final GraphicEnviroment enviroment = new OpenGLGraphicEnviroment(projector);
+	static final View2D view = enviroment.getView();
+	static final InputController controller = enviroment.getController();
+
 	
 	public static void main(String[] args) {
 		
 		Mesh monkey = new Mesh();
 		try {
-			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/monkey.obj")));
+			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/heart.obj")));
 		} catch (IOException e) {
 			System.err.println("Error loading file!");
 		}
@@ -36,7 +37,7 @@ public class Test {
 		while(view.isAvailable()) {
 			projector.setAspectRatio(view.getWidth(), view.getHeight());
 			monkey.faces.sort((t1, t2) -> (int) (t2.getCenter().z / 0.01) - (int) (t1.getCenter().z / 0.01));
-			for (final Triangle3D face : monkey.faces) {
+			for (final Triangle3D face : monkey.transform(projector.getCamera()).faces) {
 				Color32 shade = color.shade(-face.getNormal().dot(light) / light.magnitude());
 				if (face.getNormal().dot(face.getCenter()) < 0) {
 					view.drawTriangle(projector.project(face), shade, true);
