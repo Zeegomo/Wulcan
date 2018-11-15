@@ -1,5 +1,6 @@
-package wulcan;
+package wulcan.graphics;
 
+import wulcan.*;
 
 public interface View2D{
 	public int getWidth();
@@ -18,8 +19,11 @@ public interface View2D{
 	public boolean isAvailable();
 
 	public void nextFrame();
+	
+	public long getWindow();
 
 	public void close();
 	
+	public void setController(InputController controller);
 }
 

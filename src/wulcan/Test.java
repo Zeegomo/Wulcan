@@ -1,17 +1,23 @@
 package wulcan;
 
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+import wulcan.graphics.*;
+
 public class Test {
 	static final Color32 color = new Color32(1.0, 0.0, 1.0);
 	static final double fov = 3.1415/2;
-	static final View2D view = new OpenGLView(1200, 800);
+	static final GraphicEnviroment enviroment = new OpenGLGraphicEnviroment();
+	static final View2D view = enviroment.getView();
+	static final InputController controller = enviroment.getController();
 	static final Point3D light = new Point3D(0,0,1);
 	static final Projector projector = new Projector(fov, 1);
 	
 	public static void main(String[] args) {
+		
 		Mesh monkey = new Mesh();
 		try {
 			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/monkey.obj")));

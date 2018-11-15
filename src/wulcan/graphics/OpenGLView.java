@@ -1,10 +1,11 @@
-package wulcan;
+package wulcan.graphics;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
+import wulcan.*;
 
 import java.nio.IntBuffer;
 
@@ -19,13 +20,17 @@ public class OpenGLView implements View2D {
 	private long window;
 	private int height;
 	private int width;
-	private InputController controller = null;
-
+	private InputController controller;
+	
 	public OpenGLView(int height, int width) {
 		this.width = width;
 		this.height = height;
 		this.isAvailable = true;
 		this.init();
+	}
+
+	public void setController(InputController controller) {
+		this.controller = controller;
 	}
 	
 	public int getHeight() {
@@ -34,6 +39,10 @@ public class OpenGLView implements View2D {
 
 	public int getWidth() {
 		return this.width;
+	}
+	
+	public long getWindow() {
+		return this.window;
 	}
 
 	public boolean drawPoint(Point2D p, Color32 c) {
@@ -103,9 +112,6 @@ public class OpenGLView implements View2D {
 			if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
 				glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
 		});*/
-		this.controller = new InputController(this.window);
-		controller.setCallback(GLFW_KEY_W, () -> System.out.println("dd"));
-		controller.setCallback(GLFW_KEY_ESCAPE, () -> glfwSetWindowShouldClose(window, true));
 
 		updateSize();
 
@@ -156,14 +162,14 @@ public class OpenGLView implements View2D {
 		if (!glfwWindowShouldClose(window)) {
 			glfwSwapBuffers(window);
 			glClear(GL_COLOR_BUFFER_BIT);
-			glfwPollEvents();
 			this.controller.poll();
 			if(updateSize()) {
 				glViewport(0, 0, this.width, this.height);
 			}
 
-		} else
+		} else {
 			this.close();
+		}
 	}
 
 	private boolean updateSize() {
