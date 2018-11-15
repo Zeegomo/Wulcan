@@ -19,6 +19,7 @@ public class OpenGLView implements View2D {
 	private long window;
 	private int height;
 	private int width;
+	private InputController controller = null;
 
 	public OpenGLView(int height, int width) {
 		this.width = width;
@@ -98,10 +99,13 @@ public class OpenGLView implements View2D {
 			throw new RuntimeException("Failed to create the GLFW window");
 
 		// Setup a key callback. It will be called every time a key is pressed, repeated or released.
-		glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
+		/*glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
 			if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
 				glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
-		});
+		});*/
+		this.controller = new InputController(this.window);
+		controller.setCallback(GLFW_KEY_W, () -> System.out.println("dd"));
+		controller.setCallback(GLFW_KEY_ESCAPE, () -> glfwSetWindowShouldClose(window, true));
 
 		updateSize();
 
@@ -153,6 +157,7 @@ public class OpenGLView implements View2D {
 			glfwSwapBuffers(window);
 			glClear(GL_COLOR_BUFFER_BIT);
 			glfwPollEvents();
+			this.controller.poll();
 			if(updateSize()) {
 				glViewport(0, 0, this.width, this.height);
 			}
@@ -189,4 +194,5 @@ public class OpenGLView implements View2D {
 			this.isAvailable = false;
 		}
 	}
+
 }
