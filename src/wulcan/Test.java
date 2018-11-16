@@ -36,8 +36,9 @@ public class Test {
 
 		while(view.isAvailable()) {
 			projector.setAspectRatio(view.getWidth(), view.getHeight());
-			monkey.faces.sort((t1, t2) -> (int) (t2.getCenter().z / 0.01) - (int) (t1.getCenter().z / 0.01));
-			for (final Triangle3D face : monkey.transform(projector.getCamera()).faces) {
+			Mesh other = monkey.transform(projector.getCamera());
+			other.faces.sort((t1, t2) -> Double.compare(t2.getCenter().z, t1.getCenter().z));
+			for (final Triangle3D face : other.faces) {
 				Color32 shade = color.shade(-face.getNormal().dot(light) / light.magnitude());
 				if (face.getNormal().dot(face.getCenter()) < 0) {
 					view.drawTriangle(projector.project(face), shade, true);
@@ -45,7 +46,7 @@ public class Test {
 				}
 			}
 
-			monkey = monkey.transform(transform);
+			//monkey = monkey.transform(transform);
 
 			if (System.nanoTime() - time > 1000000000) {
 				time = System.nanoTime();
