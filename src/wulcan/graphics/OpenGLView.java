@@ -65,15 +65,15 @@ public class OpenGLView implements View2D {
 	
 	public boolean drawLine(Point2D p1, Point2D p2, Color32 c) {
 		if(this.isAvailable) {
-			/*if(drawing != Drawing.LINES) {
+			if(drawing != Drawing.LINES) {
 				glEnd();
 				glBegin(GL_LINES);
 				drawing = Drawing.LINES;
-			}*/
+			}
 			glColor3d(c.getR(), c.getG(), c.getB());
             glVertex2d(p1.getX(), p1.getY());
             glVertex2d(p2.getX(), p2.getY());
-            glEnd();
+            //glEnd();
 		}
 		return this.isAvailable;
 	}
@@ -90,7 +90,6 @@ public class OpenGLView implements View2D {
 				glBegin(GL_TRIANGLES);
 				drawing = Drawing.TRIANGLES;
 			}
-			glBegin(filled ? GL_TRIANGLES : GL_LINE_LOOP);
 			glColor3d(c.getR(), c.getG(), c.getB());
 			for (int i = 0; i < 3; i++)
 				glVertex2d(triangle.getVertex(i).getX(), triangle.getVertex(i).getY());
@@ -180,7 +179,7 @@ public class OpenGLView implements View2D {
 	}
 	
 	public void nextFrame() {
-		if(drawing != Drawing.NOT_DRAWING) {glEnd();}
+		if(this.drawing != Drawing.NOT_DRAWING) {glEnd();this.drawing = Drawing.NOT_DRAWING;}
 		if (!glfwWindowShouldClose(window)) {
 			glfwSwapBuffers(window);
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -222,7 +221,7 @@ public class OpenGLView implements View2D {
 			this.isAvailable = false;
 		}
 	}
-	
+
 	public static enum Drawing{
 		NOT_DRAWING, POINTS,  TRIANGLES, LINE_LOOP, LINES;
 	}
