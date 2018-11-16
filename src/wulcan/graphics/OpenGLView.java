@@ -21,6 +21,7 @@ public class OpenGLView implements View2D {
 	private int height;
 	private int width;
 	private InputController controller;
+	private Drawing drawing = Drawing.NOT_DRAWING;
 	
 	public OpenGLView(int height, int width) {
 		this.width = width;
@@ -47,18 +48,28 @@ public class OpenGLView implements View2D {
 
 	public boolean drawPoint(Point2D p, Color32 c) {
 		if(this.isAvailable) {
-			glPointSize(2);
-			glBegin(GL_POINTS);
+			//glPointSize(2);
+			//glBegin(GL_POINTS);
+			if(drawing != Drawing.POINTS) {
+				glEnd();
+				glPointSize(2);
+				glBegin(GL_POINTS);
+				drawing = Drawing.POINTS;
+			}
 			glColor3d(c.getR(), c.getG(), c.getB());
             glVertex2d(p.getX(), p.getY());
-            glEnd();
+            //glEnd();
 		}
 		return this.isAvailable;
 	}
 	
 	public boolean drawLine(Point2D p1, Point2D p2, Color32 c) {
 		if(this.isAvailable) {
-			glBegin(GL_LINES);
+			/*if(drawing != Drawing.LINES) {
+				glEnd();
+				glBegin(GL_LINES);
+				drawing = Drawing.LINES;
+			}*/
 			glColor3d(c.getR(), c.getG(), c.getB());
             glVertex2d(p1.getX(), p1.getY());
             glVertex2d(p2.getX(), p2.getY());
@@ -69,11 +80,21 @@ public class OpenGLView implements View2D {
 
 	public boolean drawTriangle(Triangle2D triangle, Color32 c, boolean filled) {
 		if(this.isAvailable) {
+			if(drawing != Drawing.LINE_LOOP && !filled) {
+				glEnd();
+				glBegin(GL_LINE_LOOP);
+				drawing = Drawing.LINE_LOOP;
+			}
+			if(drawing != Drawing.LINE_LOOP && filled) {
+				glEnd();
+				glBegin(GL_TRIANGLES);
+				drawing = Drawing.TRIANGLES;
+			}
 			glBegin(filled ? GL_TRIANGLES : GL_LINE_LOOP);
 			glColor3d(c.getR(), c.getG(), c.getB());
 			for (int i = 0; i < 3; i++)
 				glVertex2d(triangle.getVertex(i).getX(), triangle.getVertex(i).getY());
-			glEnd();
+			//glEnd();
 		}
 		return this.isAvailable;
 	}
@@ -146,7 +167,7 @@ public class OpenGLView implements View2D {
 		// Make the OpenGL context current
 		glfwMakeContextCurrent(window);
 		// Enable v-sync
-		glfwSwapInterval(1);
+		glfwSwapInterval(0);
 		
 		
 		// Make the window visible
@@ -159,6 +180,7 @@ public class OpenGLView implements View2D {
 	}
 	
 	public void nextFrame() {
+		if(drawing != Drawing.NOT_DRAWING) {glEnd();}
 		if (!glfwWindowShouldClose(window)) {
 			glfwSwapBuffers(window);
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -199,6 +221,10 @@ public class OpenGLView implements View2D {
 			glfwSetErrorCallback(null).free();
 			this.isAvailable = false;
 		}
+	}
+	
+	public static enum Drawing{
+		NOT_DRAWING, POINTS,  TRIANGLES, LINE_LOOP, LINES;
 	}
 
 }
