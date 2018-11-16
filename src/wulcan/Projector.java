@@ -33,13 +33,11 @@ public class Projector {
 	public void translateCamera(final Point3D point) {
 		//Matrices.buildTranslate(point.x, point.y, point.z).print();
 		camera = Matrices.buildTranslate(point.x, point.y, point.z).mult(camera);
-		camera.print();
 	}
 
 	public void rotateCamera(final Point3D point) {
 		//Matrices.buildTranslate(point.x, point.y, point.z).print();
 		camera = Matrices.buildRotate(point.x, point.y, point.z).mult(camera);
-		camera.print();
 	}
 
 	public Matrix4x4 getCamera() {
