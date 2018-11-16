@@ -4,7 +4,7 @@ public class Point3D {
 	public double x;
 	public double y;
 	public double z;
-	
+
 	public Point3D(final Point3D copy) {
 		this(copy.x, copy.y, copy.z);
 	}

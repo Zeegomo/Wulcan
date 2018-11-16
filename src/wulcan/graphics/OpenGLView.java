@@ -52,12 +52,12 @@ public class OpenGLView implements View2D {
 			//glBegin(GL_POINTS);
 			if(drawing != Drawing.POINTS) {
 				glEnd();
-				glPointSize(2);
+				glPointSize(1);
 				glBegin(GL_POINTS);
+				glColor3d(c.getR(), c.getG(), c.getB());
 				drawing = Drawing.POINTS;
 			}
-			glColor3d(c.getR(), c.getG(), c.getB());
-            glVertex2d(p.getX(), p.getY());
+			glVertex2d(p.getX(), p.getY());
             //glEnd();
 		}
 		return this.isAvailable;
