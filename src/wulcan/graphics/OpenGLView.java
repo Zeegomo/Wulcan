@@ -80,16 +80,20 @@ public class OpenGLView implements View2D {
 
 	public boolean drawTriangle(Triangle2D triangle, Color32 c, boolean filled) {
 		if(this.isAvailable) {
-			if(drawing != Drawing.LINE_LOOP && !filled) {
-				glEnd();
+			if(!filled) {
+				if(this.drawing != Drawing.NOT_DRAWING) {
+					glEnd();
+				}
 				glBegin(GL_LINE_LOOP);
 				drawing = Drawing.LINE_LOOP;
+			}else {
+				if(drawing != Drawing.TRIANGLES) {
+					glEnd();
+					glBegin(GL_TRIANGLES);
+					drawing = Drawing.TRIANGLES;
+				}
 			}
-			if(drawing != Drawing.LINE_LOOP && filled) {
-				glEnd();
-				glBegin(GL_TRIANGLES);
-				drawing = Drawing.TRIANGLES;
-			}
+			//glBegin(filled ? GL_TRIANGLES : GL_LINE_LOOP);
 			glColor3d(c.getR(), c.getG(), c.getB());
 			for (int i = 0; i < 3; i++)
 				glVertex2d(triangle.getVertex(i).getX(), triangle.getVertex(i).getY());
@@ -166,7 +170,7 @@ public class OpenGLView implements View2D {
 		// Make the OpenGL context current
 		glfwMakeContextCurrent(window);
 		// Enable v-sync
-		glfwSwapInterval(0);
+		glfwSwapInterval(1);
 		
 		
 		// Make the window visible
