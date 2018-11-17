@@ -20,6 +20,12 @@ public class Test {
 
 	
 	public static void main(String[] args) {
+		final Point3D[] clipNormals = {
+				Matrices.buildRotate(0, -fov/2, 0).mult(new Point3D(-1, 0,0)),
+				Matrices.buildRotate(0,  fov/2, 0).mult(new Point3D( 1, 0,0)),
+				Matrices.buildRotate( fov/2, 0, 0).mult(new Point3D( 0,-1,0)),
+				Matrices.buildRotate(-fov/2, 0, 0).mult(new Point3D( 0, 1,0))
+		};
 		
 		Mesh monkey = new Mesh();
 		try {
@@ -39,21 +45,18 @@ public class Test {
 		while(view.isAvailable()) {
 			projector.setAspectRatio(view.getWidth(), view.getHeight());
 			monkey.faces.sort((t1, t2) -> (int) (t2.getCenter().z / 0.01) - (int) (t1.getCenter().z / 0.01));
-			for (final Triangle3D face : monkey.transform(projector.getCamera()).faces) {
+			for (final Triangle3D meshFace : monkey.faces) {
+				Color32 shade = color.shade(-meshFace.getNormal().dot(light) / light.magnitude());
 				ArrayList<Triangle3D> toDraw = new ArrayList<>();
+				final Triangle3D face = new Triangle3D(
+						projector.getCamera().mult(meshFace.getVertex(0)),
+						projector.getCamera().mult(meshFace.getVertex(1)),
+						projector.getCamera().mult(meshFace.getVertex(2)));
 				toDraw.add(face);
-				final Point3D[] normals = {
-						Matrices.buildRotate(0, -fov/2, 0).mult(new Point3D(-1, 0,0)),
-						Matrices.buildRotate(0,  fov/2, 0).mult(new Point3D( 1, 0,0)),
-						Matrices.buildRotate(-fov/2, 0, 0).mult(new Point3D( 0,-1,0)),
-						Matrices.buildRotate( fov/2, 0, 0).mult(new Point3D( 0, 1,0))
-				};
-				for (final Point3D planeNormal : normals) {
+				for (final Point3D planeNormal : clipNormals) {
 					toDraw = clipTriangles(toDraw, planeNormal, new Point3D(0,0,0));
-					System.out.println(toDraw.size());
 				}
 				
-				Color32 shade = color.shade(-face.getNormal().dot(light) / light.magnitude());
 				if (face.getNormal().dot(face.getCenter()) < 0) {
 					for (final Triangle3D tri : toDraw) {
 						view.drawTriangle(projector.project(tri), shade, false);
