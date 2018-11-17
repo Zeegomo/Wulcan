@@ -4,7 +4,11 @@ package wulcan;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+
+import org.lwjgl.system.CallbackI.P;
 
 import wulcan.graphics.*;
 
@@ -22,11 +26,22 @@ public class Test {
 		
 		Mesh monkey = new Mesh();
 		try {
-			monkey = Mesh.loadFromOBJ(new FileReader(new File("plane.obj")));
+			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/monkey.obj")));
 		} catch (IOException e) {
 			System.err.println("Error loading file!");
 		}
-
+		List<Point3D> coord = new ArrayList<>();
+		coord.add(new Point3D(-6,  6, -6));
+		coord.add(new Point3D(-6,  6,  6));
+		coord.add(new Point3D( 6,  6,  6));
+		coord.add(new Point3D( 6,  6, -6));
+		coord.add(new Point3D(-6, -6, -6));
+		coord.add(new Point3D(-6, -6,  6));
+		coord.add(new Point3D( 6, -6,  6));
+		coord.add(new Point3D( 6, -6, -6));
+		System.out.println("building octree");
+		Octree oc = new Octree(coord, monkey.faces);
+		System.out.println("finished building octree");
 		Matrix4x4 transform = Matrices.buildTranslate(monkey.getCenter().x, monkey.getCenter().y, monkey.getCenter().z)
 				.mult(Matrices.buildRotate(-0.01, -0.01, -0.01))
 //				.mult(Matrices.buildRotate(0, 0.01, 0))
@@ -34,10 +49,11 @@ public class Test {
 
 		long time = System.nanoTime();
 		long fps = 0;
-
+		System.out.println("projecting");
 		while(view.isAvailable()) {
 			projector.setAspectRatio(view.getWidth(), view.getHeight());
 			Mesh other = monkey.transform(projector.getCamera());
+			other = monkey;
 			//other.faces.sort((t1, t2) -> Double.compare(t2.getCenter().z, t1.getCenter().z));
 			/*for (final Triangle3D face : other.faces) {
 				Color32 shade = color.shade(-face.getNormal().dot(light) / light.magnitude());
@@ -47,9 +63,9 @@ public class Test {
 				}
 			}*/
 			double t = Math.tan(fov/2)*znear;
-			test(other, t);
+			test(other,oc, t);
 
-			//monkey = monkey.transform(transform);
+			monkey = monkey.transform(transform);
 
 			if (System.nanoTime() - time > 1000000000) {
 				time = System.nanoTime();
@@ -62,28 +78,41 @@ public class Test {
 		System.out.println("finished");
 	}
 
-	private static void test(Mesh other, double t) {
+	private static void test(Mesh other, Octree o, double t) {
 		for(double i = -1; i < 1; i += 2.0/view.getWidth()) {
 			for(double j = -1; j < 1; j += 2.0/view.getHeight()) {
 				Point3D screenPoint = new Point3D(i*view.getWidth()/view.getHeight()*t, j * t, znear);
 				Point3D closest = null;
 				Triangle3D closestFace = null;
-				drawface(other, i, j, screenPoint, closest, closestFace);
+				drawface(other, o,  i, j, screenPoint, closest, closestFace);
 			}
 		}
 	}
 
-	private static void drawface(Mesh other, double i, double j, Point3D screenPoint, Point3D closest,
+	private static void drawface(Mesh other, Octree o,  double i, double j, Point3D screenPoint, Point3D closest,
 			Triangle3D closestFace) {
-		for (final Triangle3D face : other.faces) {
-			Optional<Point3D> intersection = intersectFaceLine(face, screenPoint, new Point3D(0, 0, 0));
-			if (intersection.isPresent() && intersection.get().magnitude() >= screenPoint.magnitude()) {
-				if(closest == null || closest.z > intersection.get().z) {
-					closest = intersection.get();
-					closestFace = face;
+		Point3D p = new Point3D(screenPoint);
+		int a = 0;
+		while(p.x <= 6 && p.x >= -6 && p.y >= -6 && p.y<= 6 && p.z >= -6 && p.z <= 6 && closest == null) {
+			p = p.add(screenPoint.mult(1));
+			a++;
+			//System.out.println(closest);
+			Optional<List<Triangle3D>> faces = o.search(p);
+			//System.out.println(p.z);
+			if(faces.isPresent()) {
+				//System.out.println(faces.get().size());
+				for (final Triangle3D face : faces.get()) {
+					Optional<Point3D> intersection = intersectFaceLine(face, screenPoint, new Point3D(0, 0, 0));
+					if (intersection.isPresent() && intersection.get().magnitude() >= screenPoint.magnitude()) {
+						if(closest == null || closest.z > intersection.get().z) {
+							closest = intersection.get();
+							closestFace = face;
+						}
+					}
 				}
 			}
 		}
+		//System.out.println(a);
 		if(closest != null) {
 			Color32 shade = color.shade(-closestFace.getNormal().dot(light) / light.magnitude());
 			view.drawPoint(new Point2D(i, j), shade);
@@ -107,7 +136,7 @@ public class Test {
 			return Optional.empty();
 		}
 	}
-
+	
 	static public Optional<Point3D> intersectFaceLine(final Triangle3D tri, final Point3D line, final Point3D linePoint){
 		Optional<Point3D> intersection = intersectPlaneLine(tri.getNormal(), tri.getVertex(0), line, linePoint);
 		if(intersection.isPresent()) {
