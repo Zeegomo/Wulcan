@@ -21,7 +21,7 @@ public class Test {
 		
 		Mesh monkey = new Mesh();
 		try {
-			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/heart.obj")));
+			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/man.obj")));
 		} catch (IOException e) {
 			System.err.println("Error loading file!");
 		}
@@ -46,7 +46,7 @@ public class Test {
 				}
 			}
 
-			//monkey = monkey.transform(transform);
+			monkey = monkey.transform(transform);
 
 			if (System.nanoTime() - time > 1000000000) {
 				time = System.nanoTime();
