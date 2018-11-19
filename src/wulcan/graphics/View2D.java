@@ -1,6 +1,8 @@
 package wulcan.graphics;
 
 import wulcan.*;
+import wulcan.math.Point2D;
+import wulcan.math.Triangle2D;
 
 public interface View2D{
 	public int getWidth();

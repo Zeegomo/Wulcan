@@ -1,8 +1,9 @@
 package wulcan.graphics;
 
+
 import org.lwjgl.glfw.GLFW;
 
-import wulcan.Point3D;
+import wulcan.math.Point3D;
 import wulcan.Projector;
 
 public class OpenGLGraphicEnviroment implements GraphicEnviroment {

@@ -1,5 +1,11 @@
 package wulcan;
 
+import wulcan.math.Matrices;
+import wulcan.math.Matrix4x4;
+import wulcan.math.Point2D;
+import wulcan.math.Point3D;
+import wulcan.math.Triangle2D;
+import wulcan.math.Triangle3D;
 
 /**
  * Projects a 3D entity to 2D

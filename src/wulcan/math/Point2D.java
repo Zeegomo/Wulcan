@@ -1,4 +1,4 @@
-package wulcan;
+package wulcan.math;
 
 public class Point2D {
 	public double x;

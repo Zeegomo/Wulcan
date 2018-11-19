@@ -6,6 +6,8 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import wulcan.*;
+import wulcan.math.Point2D;
+import wulcan.math.Triangle2D;
 
 import java.nio.IntBuffer;
 

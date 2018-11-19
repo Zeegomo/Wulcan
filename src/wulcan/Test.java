@@ -5,38 +5,45 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import wulcan.graphics.*;
+import wulcan.math.Matrices;
+import wulcan.math.Matrix4x4;
+import wulcan.math.Point3D;
+import wulcan.math.Triangle3D;
 
 public class Test {
 	static final Color32 color = new Color32(1.0, 0.0, 1.0);
-	static final double fov = 3.1415/2;
+	static final double fov = Math.PI/2;
 	static final Point3D light = new Point3D(0,0,1);
 	static final Projector projector = new Projector(fov, 1);
 	static final GraphicEnviroment enviroment = new OpenGLGraphicEnviroment(projector);
 	static final View2D view = enviroment.getView();
 	static final InputController controller = enviroment.getController();
-
+	// Normals of planes used to clip triangles
+	static final ArrayList<Point3D> clipNormals = new ArrayList<>(Arrays.asList(
+			Matrices.buildRotate(0, -fov/2, 0).mult(new Point3D(-1, 0,0)),
+			Matrices.buildRotate(0,  fov/2, 0).mult(new Point3D( 1, 0,0)),
+			Matrices.buildRotate( fov/2, 0, 0).mult(new Point3D( 0,-1,0)),
+			Matrices.buildRotate(-fov/2, 0, 0).mult(new Point3D( 0, 1,0))
+	));
 	
 	public static void main(String[] args) {
-		final Point3D[] clipNormals = {
-				Matrices.buildRotate(0, -fov/2, 0).mult(new Point3D(-1, 0,0)),
-				Matrices.buildRotate(0,  fov/2, 0).mult(new Point3D( 1, 0,0)),
-				Matrices.buildRotate( fov/2, 0, 0).mult(new Point3D( 0,-1,0)),
-				Matrices.buildRotate(-fov/2, 0, 0).mult(new Point3D( 0, 1,0))
-		};
-		
+		// Load mesh
 		Mesh monkey = new Mesh();
 		try {
 			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/heart.obj")));
-		} catch (IOException e) {
+		} catch (Exception e) {
 			System.err.println("Error loading file!");
 		}
 
+		// Build a transform matrix to rotate the mesh around its center
 		Matrix4x4 transform = Matrices.buildTranslate(monkey.getCenter().x, monkey.getCenter().y, monkey.getCenter().z)
 				.mult(Matrices.buildRotate(-0.01, -0.01, -0.01))
-//				.mult(Matrices.buildRotate(0, 0.01, 0))
 				.mult(Matrices.buildTranslate(-monkey.getCenter().x, -monkey.getCenter().y, -monkey.getCenter().z));
 
 		long time = System.nanoTime();
@@ -44,20 +51,22 @@ public class Test {
 
 		while(view.isAvailable()) {
 			projector.setAspectRatio(view.getWidth(), view.getHeight());
-			monkey.faces.sort((t1, t2) -> (int) (t2.getCenter().z / 0.01) - (int) (t1.getCenter().z / 0.01));
-			for (final Triangle3D meshFace : monkey.faces) {
-				Color32 shade = color.shade(-meshFace.getNormal().dot(light) / light.magnitude());
-				ArrayList<Triangle3D> toDraw = new ArrayList<>();
-				final Triangle3D face = new Triangle3D(
-						projector.getCamera().mult(meshFace.getVertex(0)),
-						projector.getCamera().mult(meshFace.getVertex(1)),
-						projector.getCamera().mult(meshFace.getVertex(2)));
-				toDraw.add(face);
-				for (final Point3D planeNormal : clipNormals) {
-					toDraw = clipTriangles(toDraw, planeNormal, new Point3D(0,0,0));
-				}
-				
+			final Mesh relocatedMesh = monkey.transform(projector.getCamera()); // Transform mesh accordin to camera position/rotation
+			final Point3D relocatedLight = projector.getCamera().mult(light, 0); // 0 as 4th element ignores translation
+			monkey.faces.sort((t1, t2) -> (int) (t2.getCenter().z / 0.01) - (int) (t1.getCenter().z / 0.01)); // Sort faces by distance to handle overlapping
+			
+			final List<Point3D> relocatedClipNormals = Arrays.asList(clipNormals.stream().map(n -> projector.getCamera().mult(n, 0)).toArray(Point3D[]::new));
+			final Point3D relocatedClipOrigin = projector.getCamera().mult(new Point3D());
+			for (final Triangle3D face : relocatedMesh.faces) {
 				if (face.getNormal().dot(face.getCenter()) < 0) {
+					Color32 shade = color.shade(-face.getNormal().dot(relocatedLight) / relocatedLight.magnitude());
+					
+					ArrayList<Triangle3D> toDraw = new ArrayList<>();
+					toDraw.add(face);
+					for (final Point3D planeNormal : relocatedClipNormals) {
+						toDraw = clipTriangles(toDraw, planeNormal, relocatedClipOrigin);
+					}
+					
 					for (final Triangle3D tri : toDraw) {
 						view.drawTriangle(projector.project(tri), shade, false);
 					}

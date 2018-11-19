@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import wulcan.math.Matrix4x4;
+import wulcan.math.Point3D;
+import wulcan.math.Triangle3D;
+
 public class Mesh {
 	public List<Triangle3D> faces = new ArrayList<>();
 	

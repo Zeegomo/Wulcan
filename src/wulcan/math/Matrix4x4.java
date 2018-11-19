@@ -1,4 +1,4 @@
-package wulcan;
+package wulcan.math;
 
 public class Matrix4x4 {
 	private double[][] data;
@@ -36,11 +36,15 @@ public class Matrix4x4 {
 
 	// The 4th element of the points is always 1
 	public Point3D mult(final Point3D other) {
+		return this.mult(other, 1);
+	}
+	
+	public Point3D mult(final Point3D other, final double fourthElement) {
 		Point3D result = new Point3D(0,0,0);
 		
-		result.x = other.x * this.get(0, 0) + other.y * this.get(0, 1) + other.z * this.get(0, 2) + this.get(0, 3);
-		result.y = other.x * this.get(1, 0) + other.y * this.get(1, 1) + other.z * this.get(1, 2) + this.get(1, 3);
-		result.z = other.x * this.get(2, 0) + other.y * this.get(2, 1) + other.z * this.get(2, 2) + this.get(2, 3);
+		result.x = other.x * this.get(0, 0) + other.y * this.get(0, 1) + other.z * this.get(0, 2) + fourthElement * this.get(0, 3);
+		result.y = other.x * this.get(1, 0) + other.y * this.get(1, 1) + other.z * this.get(1, 2) + fourthElement * this.get(1, 3);
+		result.z = other.x * this.get(2, 0) + other.y * this.get(2, 1) + other.z * this.get(2, 2) + fourthElement * this.get(2, 3);
 		
 		return result;
 	}

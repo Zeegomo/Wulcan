@@ -1,4 +1,4 @@
-package wulcan;
+package wulcan.math;
 
 public class Point3D {
 	public double x;
@@ -7,6 +7,10 @@ public class Point3D {
 	
 	public Point3D(final Point3D copy) {
 		this(copy.x, copy.y, copy.z);
+	}
+	
+	public Point3D() {
+		this(0,0,0);
 	}
 
 	public Point3D(double x, double y, double z) {

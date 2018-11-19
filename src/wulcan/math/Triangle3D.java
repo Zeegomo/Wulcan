@@ -1,4 +1,4 @@
-package wulcan;
+package wulcan.math;
 
 public class Triangle3D {
 	private Point3D[] vertices;

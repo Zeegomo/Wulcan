@@ -1,4 +1,4 @@
-package wulcan;
+package wulcan.math;
 
 public class Matrices {
 	static public Matrix4x4 buildIdentity() {
