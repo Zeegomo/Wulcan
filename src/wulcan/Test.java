@@ -19,24 +19,17 @@ import wulcan.math.Triangle3D;
 public class Test {
 	static final Color32 color = new Color32(1.0, 0.0, 1.0);
 	static final double fov = Math.PI/2;
-	static final Point3D light = new Point3D(0,0,1);
+	static final Point3D light = new Point3D(0,-1,1).normalize();
 	static final Projector projector = new Projector(fov, 1);
 	static final GraphicEnviroment enviroment = new OpenGLGraphicEnviroment(projector);
 	static final View2D view = enviroment.getView();
 	static final InputController controller = enviroment.getController();
-	// Normals of planes used to clip triangles
-	static final ArrayList<Point3D> clipNormals = new ArrayList<>(Arrays.asList(
-			Matrices.buildRotate(0, -fov/2, 0).mult(new Point3D(-1, 0,0)),
-			Matrices.buildRotate(0,  fov/2, 0).mult(new Point3D( 1, 0,0)),
-			Matrices.buildRotate( fov/2, 0, 0).mult(new Point3D( 0,-1,0)),
-			Matrices.buildRotate(-fov/2, 0, 0).mult(new Point3D( 0, 1,0))
-	));
 	
 	public static void main(String[] args) {
 		// Load mesh
 		Mesh monkey = new Mesh();
 		try {
-			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/heart.obj")));
+			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/castle.obj")));
 		} catch (Exception e) {
 			System.err.println("Error loading file!");
 		}
@@ -51,27 +44,32 @@ public class Test {
 
 		while(view.isAvailable()) {
 			projector.setAspectRatio(view.getWidth(), view.getHeight());
+			final double horizontalClipAngle = Math.atan(Math.tan(fov/2) * view.getWidth() / view.getHeight());
+			// Normals of planes used to clip triangles
+			final ArrayList<Point3D> clipNormals = new ArrayList<>(Arrays.asList(
+					Matrices.buildRotate(0, -horizontalClipAngle, 0).mult(new Point3D(-1, 0,0)),
+					Matrices.buildRotate(0,  horizontalClipAngle, 0).mult(new Point3D( 1, 0,0)),
+					Matrices.buildRotate( fov/2, 0, 0).mult(new Point3D( 0,-1,0)),
+					Matrices.buildRotate(-fov/2, 0, 0).mult(new Point3D( 0, 1,0))
+			));
+	
 			final Mesh relocatedMesh = monkey.transform(projector.getCamera()); // Transform mesh accordin to camera position/rotation
 			final Point3D relocatedLight = projector.getCamera().mult(light, 0); // 0 as 4th element ignores translation
-			monkey.faces.sort((t1, t2) -> (int) (t2.getCenter().z / 0.01) - (int) (t1.getCenter().z / 0.01)); // Sort faces by distance to handle overlapping
+			relocatedMesh.faces.sort((t1, t2) -> (int) (t2.getCenter().z / 0.01) - (int) (t1.getCenter().z / 0.01)); // Sort faces by distance to handle overlapping
 			
-			final List<Point3D> relocatedClipNormals = Arrays.asList(clipNormals.stream().map(n -> projector.getCamera().mult(n, 0)).toArray(Point3D[]::new));
-			final Point3D relocatedClipOrigin = projector.getCamera().mult(new Point3D());
 			for (final Triangle3D face : relocatedMesh.faces) {
 				if (face.getNormal().dot(face.getCenter()) < 0) {
 					Color32 shade = color.shade(-face.getNormal().dot(relocatedLight) / relocatedLight.magnitude());
 					
 					ArrayList<Triangle3D> toDraw = new ArrayList<>();
 					toDraw.add(face);
-					for (final Point3D planeNormal : relocatedClipNormals) {
-						toDraw = clipTriangles(toDraw, planeNormal, relocatedClipOrigin);
+					for (final Point3D planeNormal : clipNormals) {
+						toDraw = clipTriangles(toDraw, planeNormal, new Point3D());
 					}
 					
 					for (final Triangle3D tri : toDraw) {
-						view.drawTriangle(projector.project(tri), shade, false);
+						view.drawTriangle(projector.project(tri), shade, true);
 					}
-//					view.drawTriangle(projector.project(face), shade, true);
-//					drawNormal(face, 0.1);
 				}
 			}
 
