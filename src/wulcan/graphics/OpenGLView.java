@@ -72,14 +72,12 @@ public class OpenGLView implements View2D {
 			p.y /= 2;
 			//System.out.println("x: " + p.x + " y: " + p.y);
 			//System.out.println((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 4);
-			try {
+			if(p.x != 1.0 && p.y != 1.0) {
 			this.byteBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3, c.getRAsByte());
 			this.byteBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3 + 1 , c.getGAsByte());
 			this.byteBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3 + 2 , c.getBAsByte());
-			} catch (IndexOutOfBoundsException e) {
-				System.out.println((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3);
-				System.out.println("x: " + p.x + "  |   p.y: " + p.y);
 			}
+
 			//this.doubleBuffer = this.doubleBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 4 + 3, (float) 1);
             //glEnd();
 		}
