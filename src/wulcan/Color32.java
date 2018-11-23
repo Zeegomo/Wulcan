@@ -20,6 +20,13 @@ public class Color32 {
 		this.a = a;
 	}
 
+	public Color32(Color32 c) {
+		this.r = c.r;
+		this.g = c.g;
+		this.b = c.b;
+		this.a = c.a;
+	}
+
 	public Color32 shade(final double x) {
 		return new Color32(this.r * x, this.g * x, this. b * x, this.a);
 	}
@@ -40,4 +47,20 @@ public class Color32 {
 		return this.a;
 	}
 	
+	public byte getRAsByte() {
+		return (byte) (this.r * 128);
+	}
+
+	public byte getGAsByte() {
+		return (byte) (this.g * 128);
+	}
+
+	public byte getBAsByte() {
+		return (byte) (this.b * 128);
+	}
+
+	public byte getAAsByte() {
+		return (byte) (this.a * 128);
+	}
+
 }
