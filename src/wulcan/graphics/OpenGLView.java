@@ -9,8 +9,12 @@ import wulcan.*;
 import wulcan.math.Point2D;
 import wulcan.math.Triangle2D;
 
+import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
@@ -24,6 +28,8 @@ public class OpenGLView implements View2D {
 	private int width;
 	private InputController controller;
 	private Drawing drawing = Drawing.NOT_DRAWING;
+	private ByteBuffer byteBuffer = BufferUtils.createByteBuffer(3 * 300 * 300);
+	//private FloatBuffer doubleBuffer = byteBuffer.asFloatBuffer();
 	
 	public OpenGLView(int height, int width) {
 		this.width = width;
@@ -52,14 +58,29 @@ public class OpenGLView implements View2D {
 		if(this.isAvailable) {
 			//glPointSize(2);
 			//glBegin(GL_POINTS);
-			if(drawing != Drawing.POINTS) {
+			/*if(drawing != Drawing.POINTS) {
 				glEnd();
 				glPointSize(2);
 				glBegin(GL_POINTS);
 				drawing = Drawing.POINTS;
 			}
 			glColor3d(c.getR(), c.getG(), c.getB());
-            glVertex2d(p.getX(), p.getY());
+            glVertex2d(p.getX(), p.getY());*/
+			p.x += 1;
+			p.x /= 2;
+			p.y += 1;
+			p.y /= 2;
+			//System.out.println("x: " + p.x + " y: " + p.y);
+			//System.out.println((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 4);
+			try {
+			this.byteBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3, c.getRAsByte());
+			this.byteBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3 + 1 , c.getGAsByte());
+			this.byteBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3 + 2 , c.getBAsByte());
+			} catch (IndexOutOfBoundsException e) {
+				System.out.println((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3);
+				System.out.println("x: " + p.x + "  |   p.y: " + p.y);
+			}
+			//this.doubleBuffer = this.doubleBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 4 + 3, (float) 1);
             //glEnd();
 		}
 		return this.isAvailable;
@@ -179,21 +200,48 @@ public class OpenGLView implements View2D {
 		glfwShowWindow(window);
 
 		GL.createCapabilities();
-		glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+		glClearColor(0.0f, 1.0f, 1.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glfwSwapBuffers(window);
+		
+		
+		glEnable(GL_TEXTURE_2D);
+		int texture = glGenTextures();
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 	}
 	
-	public void nextFrame() {
-		if(this.drawing != Drawing.NOT_DRAWING) {glEnd();this.drawing = Drawing.NOT_DRAWING;}
+	public void nextFrame(){
+		//if(this.drawing != Drawing.NOT_DRAWING) {glEnd();this.drawing = Drawing.NOT_DRAWING;}
+		
+		/*for(int i = 0; i < 300; i++) {
+			for(int j = 0; j < 300; j++) {
+				byteBuffer = byteBuffer.put((i*300 +j)*3, (byte) 100);
+				byteBuffer = byteBuffer.put((i*300 +j)*3 + 1, (byte) 100);
+				byteBuffer = byteBuffer.put((i*300 +j)*3 + 2, (byte) 0);
+			}
+		}*/
+		
 		if (!glfwWindowShouldClose(window)) {
+			byteBuffer.flip();
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this.width, this.height, 0, GL_RGB, GL_BYTE, byteBuffer);
+			glBegin(GL_QUADS);
+			glTexCoord2d(0.0, 0.0); glVertex2f(-1.0f , -1.0f);
+			glTexCoord2d(0.0, 1.0); glVertex2f(-1.0f,  1.0f);
+			glTexCoord2d(1.0, 1.0); glVertex2f( 1.0f ,  1.0f);
+			glTexCoord2d(1.0, 0.0); glVertex2f( 1.0f , -1.0f);
+			glEnd();
 			glfwSwapBuffers(window);
 			glClear(GL_COLOR_BUFFER_BIT);
 			this.controller.poll();
-			if(updateSize()) {
-				glViewport(0, 0, this.width, this.height);
-			}
-
+			//if(updateSize()) {
+				//glViewport(0, 0, this.width, this.height);
+			//}
+			byteBuffer.clear();
+			BufferUtils.zeroBuffer(byteBuffer);
 		} else {
 			this.close();
 		}
