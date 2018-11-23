@@ -179,7 +179,9 @@ public class OpenGLView implements View2D {
 		glfwShowWindow(window);
 
 		GL.createCapabilities();
-		glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+
+		glClearColor(0.80f, 1.0f, 0.80f, 0.0f);
+
 		glClear(GL_COLOR_BUFFER_BIT);
 		glfwSwapBuffers(window);
 	}
