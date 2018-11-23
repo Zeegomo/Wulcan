@@ -13,6 +13,7 @@ import java.util.Optional;
 import wulcan.graphics.*;
 import wulcan.math.Matrices;
 import wulcan.math.Matrix4x4;
+import wulcan.math.Point2D;
 import wulcan.math.Point3D;
 import wulcan.math.Triangle3D;
 
@@ -29,7 +30,8 @@ public class Test {
 		// Load mesh
 		Mesh monkey = new Mesh();
 		try {
-			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/castle.obj")));
+			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/cube"
+					+ ".obj")));
 		} catch (Exception e) {
 			System.err.println("Error loading file!");
 		}
@@ -68,7 +70,10 @@ public class Test {
 					}
 					
 					for (final Triangle3D tri : toDraw) {
-						view.drawTriangle(projector.project(tri), shade, true);
+						//view.drawTriangle(projector.project(tri), shade, true);
+						view.drawPoint(projector.project(tri.getVertex(0)), shade);
+						view.drawPoint(projector.project(tri.getVertex(1)), shade);
+						view.drawPoint(projector.project(tri.getVertex(2)), shade);
 					}
 				}
 			}
@@ -81,6 +86,7 @@ public class Test {
 				fps = 0;
 			}
 			fps++;
+
 			view.nextFrame();
 		}
 		System.out.println("finished");
