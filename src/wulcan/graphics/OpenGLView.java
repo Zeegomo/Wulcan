@@ -28,7 +28,7 @@ public class OpenGLView implements View2D {
 	private int width;
 	private InputController controller;
 	private Drawing drawing = Drawing.NOT_DRAWING;
-	private ByteBuffer byteBuffer = BufferUtils.createByteBuffer(3 * 300 * 300);
+	private ByteBuffer byteBuffer = BufferUtils.createByteBuffer(3 * 800 * 800);
 	//private FloatBuffer doubleBuffer = byteBuffer.asFloatBuffer();
 	
 	public OpenGLView(int height, int width) {
@@ -54,7 +54,18 @@ public class OpenGLView implements View2D {
 		return this.window;
 	}
 
-	public boolean drawPoint(Point2D p, Color32 c) {
+	private int getPixel(Point2D p) {
+		p.x += 1;
+		p.x /= 2;
+		p.y += 1;
+		p.y /= 2;
+		if(p.x != 1.0 && p.y != 1.0) {
+			return (int) ((p.y * this.height) * this.width  + (int) (p.x * this.width) * 3);
+		}
+		return 0;
+	}
+
+	public boolean drawPoint(Point2D t, Color32 c) {
 		if(this.isAvailable) {
 			//glPointSize(2);
 			//glBegin(GL_POINTS);
@@ -66,13 +77,14 @@ public class OpenGLView implements View2D {
 			}
 			glColor3d(c.getR(), c.getG(), c.getB());
             glVertex2d(p.getX(), p.getY());*/
+			Point2D p = new Point2D(t);
 			p.x += 1;
 			p.x /= 2;
 			p.y += 1;
 			p.y /= 2;
 			//System.out.println("x: " + p.x + " y: " + p.y);
-			//System.out.println((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 4);
-			if(p.x != 1.0 && p.y != 1.0) {
+			//System.out.println((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3);
+			if(p.x < 1.0 && p.y < 1.0 && p.x >= 0 && p.y >= 0) {
 			this.byteBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3, c.getRAsByte());
 			this.byteBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3 + 1 , c.getGAsByte());
 			this.byteBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3 + 2 , c.getBAsByte());
@@ -86,6 +98,7 @@ public class OpenGLView implements View2D {
 	
 	public boolean drawLine(Point2D p1, Point2D p2, Color32 c) {
 		if(this.isAvailable) {
+			/*
 			if(drawing != Drawing.LINES) {
 				glEnd();
 				glBegin(GL_LINES);
@@ -95,13 +108,43 @@ public class OpenGLView implements View2D {
             glVertex2d(p1.getX(), p1.getY());
             glVertex2d(p2.getX(), p2.getY());
             //glEnd();
+             *
+             * */
+			if(p1.x != p2.x && p1.y != p2.y) {
+				double xStep = (p2.x - p1.x) / 10;
+				double yStep = (p2.y - p1.y) / 10;
+				Point2D tmp  = new Point2D(p1);
+				int a = 0;
+				while(Math.abs(tmp.x - p2.x) > Math.abs(xStep) && Math.abs(tmp.y - p2.y) > Math.abs(yStep)) {
+					drawPoint(tmp, c);
+					tmp.x += xStep;
+					tmp.y += yStep;
+					a++;
+				}
+			}else if(p1.x == p2.x){
+				double yStep = (p2.y - p1.y) / 10;
+				double xStep = (p2.x - p1.x) / 10;
+				Point2D tmp = new Point2D(p1);
+				while(Math.abs(tmp.y - p2.y) > Math.abs(yStep)) {
+					drawPoint(tmp, c);
+					tmp.y += yStep;
+				}
+			}else {
+				double yStep = (p2.y - p1.y) / 10;
+				double xStep = (p2.x - p1.x) / 10;
+				Point2D tmp = new Point2D(p1);
+				while(Math.abs(tmp.x - p2.x) > Math.abs(xStep)) {
+					drawPoint(tmp, c);
+					tmp.x += xStep;
+				}
+			}
 		}
 		return this.isAvailable;
 	}
 
 	public boolean drawTriangle(Triangle2D triangle, Color32 c, boolean filled) {
 		if(this.isAvailable) {
-			if(!filled) {
+			/*if(!filled) {
 				if(this.drawing != Drawing.NOT_DRAWING) {
 					glEnd();
 				}
@@ -118,7 +161,10 @@ public class OpenGLView implements View2D {
 			glColor3d(c.getR(), c.getG(), c.getB());
 			for (int i = 0; i < 3; i++)
 				glVertex2d(triangle.getVertex(i).getX(), triangle.getVertex(i).getY());
-			//glEnd();
+			//glEnd();*/
+			drawLine(triangle.getVertex(0), triangle.getVertex(1), c);
+			drawLine(triangle.getVertex(2), triangle.getVertex(1), c);
+			drawLine(triangle.getVertex(0), triangle.getVertex(2), c);
 		}
 		return this.isAvailable;
 	}
