@@ -30,12 +30,12 @@ public class Test {
 		// Load mesh
 		Mesh monkey = new Mesh();
 		try {
-			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/cube"
+			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/man"
 					+ ".obj")));
 		} catch (Exception e) {
 			System.err.println("Error loading file!");
 		}
-
+		//monkey.transform(Matrices.buildTranslate(0, 0, 5));
 		// Build a transform matrix to rotate the mesh around its center
 		Matrix4x4 transform = Matrices.buildTranslate(monkey.getCenter().x, monkey.getCenter().y, monkey.getCenter().z)
 				.mult(Matrices.buildRotate(-0.01, -0.01, -0.01))
@@ -43,7 +43,7 @@ public class Test {
 
 		long time = System.nanoTime();
 		long fps = 0;
-
+		monkey = monkey.transform(Matrices.buildTranslate(0, 0, 1));
 		while(view.isAvailable()) {
 			projector.setAspectRatio(view.getWidth(), view.getHeight());
 			final double horizontalClipAngle = Math.atan(Math.tan(fov/2) * view.getWidth() / view.getHeight());
@@ -70,10 +70,11 @@ public class Test {
 					}
 					
 					for (final Triangle3D tri : toDraw) {
-						//view.drawTriangle(projector.project(tri), shade, true);
-						view.drawPoint(projector.project(tri.getVertex(0)), shade);
-						view.drawPoint(projector.project(tri.getVertex(1)), shade);
-						view.drawPoint(projector.project(tri.getVertex(2)), shade);
+						view.drawTriangle(projector.project(tri), shade, true);
+						//view.drawPoint(projector.project(tri.getVertex(0)), shade);
+						//view.drawPoint(projector.project(tri.getVertex(1)), shade);
+						//view.drawPoint(projector.project(tri.getVertex(2)), shade);
+						//view.drawLine(projector.project(tri.getVertex(0)), projector.project(tri.getVertex(1)), shade);
 					}
 				}
 			}
