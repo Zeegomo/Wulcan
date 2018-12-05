@@ -14,7 +14,7 @@ public class OpenGLGraphicEnviroment implements GraphicEnviroment {
 	
 	public OpenGLGraphicEnviroment(Projector projector) {
 		this.projector = projector;
-		this.view = new OpenGLView(300, 300);
+		this.view = new OpenGLView(800, 800);
 		this.controller = new OpenGLInputController(view.getWindow());
 		this.controller.setCallback(Key.ESCAPE, () -> GLFW.glfwSetWindowShouldClose(view.getWindow(), true));
 		this.controller.setCallback(Key.W, () -> {
