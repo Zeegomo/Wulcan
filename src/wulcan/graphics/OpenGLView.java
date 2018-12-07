@@ -6,6 +6,8 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import wulcan.*;
+import wulcan.math.Line2D;
+import wulcan.math.Line2D.LineIterator;
 import wulcan.math.Point2D;
 import wulcan.math.Triangle2D;
 
@@ -13,6 +15,8 @@ import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -96,47 +100,22 @@ public class OpenGLView implements View2D {
 		return this.isAvailable;
 	}
 	
+	public boolean drawPointone(Point2D t, Color32 c) {
+		if(this.isAvailable) {
+			drawPoint(t, c);
+			drawPoint(new Point2D(t.x + 0.0025, t.y + 0.0025), c);
+			drawPoint(new Point2D(t.x + 0.0025, t.y - 0.0025), c);
+			drawPoint(new Point2D(t.x - 0.0025, t.y + 0.0025), c);
+			drawPoint(new Point2D(t.x - 0.0025, t.y - 0.0025), c);
+		}
+		return this.isAvailable;
+	}
+
 	public boolean drawLine(Point2D p1, Point2D p2, Color32 c) {
 		if(this.isAvailable) {
-			/*
-			if(drawing != Drawing.LINES) {
-				glEnd();
-				glBegin(GL_LINES);
-				drawing = Drawing.LINES;
-			}
-			glColor3d(c.getR(), c.getG(), c.getB());
-            glVertex2d(p1.getX(), p1.getY());
-            glVertex2d(p2.getX(), p2.getY());
-            //glEnd();
-             *
-             * */
-			if(p1.x != p2.x && p1.y != p2.y) {
-				double xStep = (p2.x - p1.x) / 10;
-				double yStep = (p2.y - p1.y) / 10;
-				Point2D tmp  = new Point2D(p1);
-				int a = 0;
-				while(Math.abs(tmp.x - p2.x) > Math.abs(xStep) && Math.abs(tmp.y - p2.y) > Math.abs(yStep)) {
-					drawPoint(tmp, c);
-					tmp.x += xStep;
-					tmp.y += yStep;
-					a++;
-				}
-			}else if(p1.x == p2.x){
-				double yStep = (p2.y - p1.y) / 10;
-				double xStep = (p2.x - p1.x) / 10;
-				Point2D tmp = new Point2D(p1);
-				while(Math.abs(tmp.y - p2.y) > Math.abs(yStep)) {
-					drawPoint(tmp, c);
-					tmp.y += yStep;
-				}
-			}else {
-				double yStep = (p2.y - p1.y) / 10;
-				double xStep = (p2.x - p1.x) / 10;
-				Point2D tmp = new Point2D(p1);
-				while(Math.abs(tmp.x - p2.x) > Math.abs(xStep)) {
-					drawPoint(tmp, c);
-					tmp.x += xStep;
-				}
+			Line2D line = new Line2D(p1, p2);
+			for(Point2D p : line) {
+				drawPoint(p, c);
 			}
 		}
 		return this.isAvailable;
@@ -144,28 +123,33 @@ public class OpenGLView implements View2D {
 
 	public boolean drawTriangle(Triangle2D triangle, Color32 c, boolean filled) {
 		if(this.isAvailable) {
-			/*if(!filled) {
-				if(this.drawing != Drawing.NOT_DRAWING) {
-					glEnd();
-				}
-				glBegin(GL_LINE_LOOP);
-				drawing = Drawing.LINE_LOOP;
-			}else {
-				if(drawing != Drawing.TRIANGLES) {
-					glEnd();
-					glBegin(GL_TRIANGLES);
-					drawing = Drawing.TRIANGLES;
-				}
+
+			//Color32 be = new Color32(0.9, 0.9, 0.9);
+			//drawPointone(triangle.getVertex(0), be);
+			//drawPointone(triangle.getVertex(1), be);
+			//drawPointone(triangle.getVertex(2), be);
+			List<Integer> l = new ArrayList<>();
+			l.add(0);
+			l.add(1);
+			l.add(2);
+			l.sort((a, b) -> Double.compare(triangle.getVertex(b).y, triangle.getVertex(a).y));
+
+			double curr = triangle.getVertex(l.get(0)).y;
+			double change = triangle.getVertex(l.get(1)).y;
+			double last = triangle.getVertex(l.get(2)).y;
+			Line2D l1 = new Line2D(triangle.getVertex(l.get(0)), triangle.getVertex(l.get(1)));
+			Line2D l2 = new Line2D(triangle.getVertex(l.get(1)), triangle.getVertex(l.get(2)));
+			Line2D l3 = new Line2D(triangle.getVertex(l.get(0)), triangle.getVertex(l.get(2)));
+			while((curr - change) > 2.0/800) {
+				drawLine(new Point2D(l1.getXgivenY(curr), curr),new Point2D(l3.getXgivenY(curr), curr), c);
+				curr -= 2.0/800;
 			}
-			//glBegin(filled ? GL_TRIANGLES : GL_LINE_LOOP);
-			glColor3d(c.getR(), c.getG(), c.getB());
-			for (int i = 0; i < 3; i++)
-				glVertex2d(triangle.getVertex(i).getX(), triangle.getVertex(i).getY());
-			//glEnd();*/
-			drawLine(triangle.getVertex(0), triangle.getVertex(1), c);
-			drawLine(triangle.getVertex(2), triangle.getVertex(1), c);
-			drawLine(triangle.getVertex(0), triangle.getVertex(2), c);
-		}
+			drawLine(new Point2D(l1.getXgivenY(change), change),new Point2D(l3.getXgivenY(change), change), c);
+			while((curr - last) > 2.0/800) {
+				drawLine(new Point2D(l2.getXgivenY(curr), curr),new Point2D(l3.getXgivenY(curr), curr), c);
+				curr -= 2.0/800;
+			}
+}
 		return this.isAvailable;
 	}
 	
