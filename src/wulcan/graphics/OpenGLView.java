@@ -117,7 +117,7 @@ public class OpenGLView implements View2D {
 	}
 	
 	private Color32 getColor(double depth) {
-		return new Color32(0.9, 0.9 - (depth > 0.9 ? 0.9 : depth), 0.5);
+		return new Color32(0.9, 0.9 - (Math.log(depth + 1) > 0.9 ? 0.9 : Math.log(depth + 1)), 0.5);
 	}
 	
 	public boolean drawLine(Point2D p1, Point2D p2, Color32 c) {
