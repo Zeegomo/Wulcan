@@ -11,10 +11,13 @@ import java.util.List;
 import java.util.Optional;
 
 import wulcan.graphics.*;
+import wulcan.math.Line2D;
+import wulcan.math.Line3D;
 import wulcan.math.Matrices;
 import wulcan.math.Matrix4x4;
 import wulcan.math.Point2D;
 import wulcan.math.Point3D;
+import wulcan.math.Triangle2D;
 import wulcan.math.Triangle3D;
 
 public class Test {
@@ -26,11 +29,13 @@ public class Test {
 	static final View2D view = enviroment.getView();
 	static final InputController controller = enviroment.getController();
 	
+	
 	public static void main(String[] args) {
+		
 		// Load mesh
 		Mesh monkey = new Mesh();
 		try {
-			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/man"
+			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/castle"
 					+ ".obj")));
 		} catch (Exception e) {
 			System.err.println("Error loading file!");
@@ -43,7 +48,7 @@ public class Test {
 
 		long time = System.nanoTime();
 		long fps = 0;
-		monkey = monkey.transform(Matrices.buildTranslate(0, 0, 1));
+		monkey = monkey.transform(Matrices.buildTranslate(0, 0, 5));
 		while(view.isAvailable()) {
 			projector.setAspectRatio(view.getWidth(), view.getHeight());
 			final double horizontalClipAngle = Math.atan(Math.tan(fov/2) * view.getWidth() / view.getHeight());
@@ -57,7 +62,7 @@ public class Test {
 	
 			final Mesh relocatedMesh = monkey.transform(projector.getCamera()); // Transform mesh accordin to camera position/rotation
 			final Point3D relocatedLight = projector.getCamera().mult(light, 0); // 0 as 4th element ignores translation
-			relocatedMesh.faces.sort((t1, t2) -> (int) (t2.getCenter().z / 0.01) - (int) (t1.getCenter().z / 0.01)); // Sort faces by distance to handle overlapping
+			//relocatedMesh.faces.sort((t1, t2) -> (int) (t2.getCenter().z / 0.01) - (int) (t1.getCenter().z / 0.01)); // Sort faces by distance to handle overlapping
 			
 			for (final Triangle3D face : relocatedMesh.faces) {
 				if (face.getNormal().dot(face.getCenter()) < 0) {

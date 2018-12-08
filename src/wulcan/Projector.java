@@ -53,7 +53,7 @@ public class Projector {
 	public Point2D project(final Point3D point) {
 		//Point3D point = new Point3D(p);
 		//point = offset.mult(point);
-		Point2D projected = new Point2D(point.x, point.y);
+		Point2D projected = new Point2D(point.x, point.y, point.z);
 		projected.x = point.x * this.aspectRatio;
 		projected.x = projected.x / (Math.tan(this.FOV / 2) * (point.z));
 		projected.y = point.y / (Math.tan(this.FOV / 2) * (point.z));

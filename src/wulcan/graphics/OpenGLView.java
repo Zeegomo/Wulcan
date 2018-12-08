@@ -7,7 +7,8 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import wulcan.*;
 import wulcan.math.Line2D;
-import wulcan.math.Line2D.LineIterator;
+import wulcan.math.Line3D;
+import wulcan.math.Line3D.LineIterator;
 import wulcan.math.Point2D;
 import wulcan.math.Triangle2D;
 
@@ -33,7 +34,7 @@ public class OpenGLView implements View2D {
 	private InputController controller;
 	private Drawing drawing = Drawing.NOT_DRAWING;
 	private ByteBuffer byteBuffer = BufferUtils.createByteBuffer(3 * 800 * 800);
-	//private FloatBuffer doubleBuffer = byteBuffer.asFloatBuffer();
+	private FloatBuffer depthBuffer = BufferUtils.createFloatBuffer(802 * 802);
 	
 	public OpenGLView(int height, int width) {
 		this.width = width;
@@ -58,13 +59,17 @@ public class OpenGLView implements View2D {
 		return this.window;
 	}
 
-	private int getPixel(Point2D p) {
+	private int getPixel(Point2D t) {
+		Point2D p = new Point2D(t);
 		p.x += 1;
 		p.x /= 2;
 		p.y += 1;
 		p.y /= 2;
-		if(p.x != 1.0 && p.y != 1.0) {
-			return (int) ((p.y * this.height) * this.width  + (int) (p.x * this.width) * 3);
+		if(p.x < 1.0 && p.y < 1.0 && p.x >= 0 && p.y >= 0) {
+			/*if((int) ((p.y * this.height)dd * this.width  + (int) (p.x * this.width)) > 800 * 800){
+				System.out.println(p.x + " " + p.y);
+			}*/
+			return (int) ((p.y * this.height) * this.width  + (int) (p.x * this.width));
 		}
 		return 0;
 	}
@@ -114,8 +119,24 @@ public class OpenGLView implements View2D {
 	public boolean drawLine(Point2D p1, Point2D p2, Color32 c) {
 		if(this.isAvailable) {
 			Line2D line = new Line2D(p1, p2);
+			int nstep = line.size < 1 ?  1 : (int) line.size; 
+			double zStep = (p2.depth - p1.depth) / nstep;
+			int a = 0;
 			for(Point2D p : line) {
-				drawPoint(p, c);
+				//System.out.println(p.x + " " + p.y);
+				if(depthBuffer.get(getPixel(p)) > p1.depth + zStep * a || depthBuffer.get(getPixel(p)) == 0) {
+					depthBuffer.put(getPixel(p), (float) p.depth); 
+					drawPoint(p, c);
+				}
+
+				if(a > nstep)
+					System.out.println("error size");
+				a++;
+				
+			}
+			if(depthBuffer.get(getPixel(p2)) > p2.depth || depthBuffer.get(getPixel(p2)) == 0) {
+				depthBuffer.put(getPixel(p2), (float) p2.depth); 
+				drawPoint(p2, c);
 			}
 		}
 		return this.isAvailable;
@@ -123,8 +144,8 @@ public class OpenGLView implements View2D {
 
 	public boolean drawTriangle(Triangle2D triangle, Color32 c, boolean filled) {
 		if(this.isAvailable) {
-
-			//Color32 be = new Color32(0.9, 0.9, 0.9);
+			
+			Color32 be = new Color32(0.9, 0.9, 0.9);
 			//drawPointone(triangle.getVertex(0), be);
 			//drawPointone(triangle.getVertex(1), be);
 			//drawPointone(triangle.getVertex(2), be);
@@ -134,6 +155,10 @@ public class OpenGLView implements View2D {
 			l.add(2);
 			l.sort((a, b) -> Double.compare(triangle.getVertex(b).y, triangle.getVertex(a).y));
 
+			//drawLine(triangle.getVertex(0), triangle.getVertex(1), be);
+			//drawLine(triangle.getVertex(1), triangle.getVertex(2), be);
+			//drawLine(triangle.getVertex(0), triangle.getVertex(2), be);
+			
 			double curr = triangle.getVertex(l.get(0)).y;
 			double change = triangle.getVertex(l.get(1)).y;
 			double last = triangle.getVertex(l.get(2)).y;
@@ -141,14 +166,16 @@ public class OpenGLView implements View2D {
 			Line2D l2 = new Line2D(triangle.getVertex(l.get(1)), triangle.getVertex(l.get(2)));
 			Line2D l3 = new Line2D(triangle.getVertex(l.get(0)), triangle.getVertex(l.get(2)));
 			while((curr - change) > 2.0/800) {
-				drawLine(new Point2D(l1.getXgivenY(curr), curr),new Point2D(l3.getXgivenY(curr), curr), c);
+				drawLine(l1.getPoint2DgivenY(curr), l3.getPoint2DgivenY(curr), c);
 				curr -= 2.0/800;
 			}
-			drawLine(new Point2D(l1.getXgivenY(change), change),new Point2D(l3.getXgivenY(change), change), c);
+			drawLine(l1.getPoint2DgivenY(change), l3.getPoint2DgivenY(change), c);
 			while((curr - last) > 2.0/800) {
-				drawLine(new Point2D(l2.getXgivenY(curr), curr),new Point2D(l3.getXgivenY(curr), curr), c);
+				drawLine(l2.getPoint2DgivenY(curr), l3.getPoint2DgivenY(curr), c);
 				curr -= 2.0/800;
 			}
+			drawLine(l2.getPoint2DgivenY(last), l3.getPoint2DgivenY(last), c);
+			
 }
 		return this.isAvailable;
 	}
@@ -269,7 +296,9 @@ public class OpenGLView implements View2D {
 				//glViewport(0, 0, this.width, this.height);
 			//}
 			byteBuffer.clear();
+			depthBuffer.clear();
 			BufferUtils.zeroBuffer(byteBuffer);
+			BufferUtils.zeroBuffer(depthBuffer);
 		} else {
 			this.close();
 		}
