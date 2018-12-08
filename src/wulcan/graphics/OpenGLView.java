@@ -35,6 +35,7 @@ public class OpenGLView implements View2D {
 	private Drawing drawing = Drawing.NOT_DRAWING;
 	private ByteBuffer byteBuffer = BufferUtils.createByteBuffer(3 * 800 * 800);
 	private FloatBuffer depthBuffer = BufferUtils.createFloatBuffer(802 * 802);
+	private float[][] depth = new float[801][801];
 	
 	public OpenGLView(int height, int width) {
 		this.width = width;
@@ -72,6 +73,24 @@ public class OpenGLView implements View2D {
 			return (int) ((p.y * this.height) * this.width  + (int) (p.x * this.width));
 		}
 		return 0;
+	}
+	
+	private float getDepth(Point2D t) {
+		Point2D p = new Point2D(t);
+		p.x += 1;
+		p.x /= 2;
+		p.y += 1;
+		p.y /= 2;
+		return depth[(int) (p.x * this.width)][(int) (p.y * this.height)];
+	}
+	
+	private void setDepth(Point2D t, float f) {
+		Point2D p = new Point2D(t);
+		p.x += 1;
+		p.x /= 2;
+		p.y += 1;
+		p.y /= 2;
+		depth[(int) (p.x * this.width)][(int) (p.y * this.height)] = f;
 	}
 
 	public boolean drawPoint(Point2D t, Color32 c) {
@@ -128,19 +147,23 @@ public class OpenGLView implements View2D {
 			int a = 0;
 			for(Point2D p : line) {
 				//System.out.println(p.x + " " + p.y);
-//				if(depthBuffer.get(getPixel(p)) > p1.depth + zStep * a || depthBuffer.get(getPixel(p)) == 0) {
-//					depthBuffer.put(getPixel(p), (float) p.depth); 
-					drawPoint(p, getColor(p1.depth + zStep * a));
-//				}
+				if(getDepth(p) > p1.depth + zStep * a || getDepth(p) == 0) {
+					//depthBuffer.put(getPixel(p), (float) p.depth); 
+					setDepth(p, (float) (p1.depth + zStep * a));
+					drawPoint(p, /*getColor(p1.depth + zStep * a)*/ c);
+				}
 
 				if(a > nstep)
 					System.out.println("error size");
 				a++;
 				
 			}
-			if(depthBuffer.get(getPixel(p2)) > p2.depth || depthBuffer.get(getPixel(p2)) == 0) {
-				depthBuffer.put(getPixel(p2), (float) p2.depth); 
-				drawPoint(p2, getColor(p2.depth));
+			
+			
+			if(getDepth(p2) > p2.depth || getDepth(p2) == 0) {
+				setDepth(p2, (float) p2.depth); 
+				drawPoint(p2, /*getColor(p2.depth)*/ c);
+			
 			}
 		}
 		return this.isAvailable;
@@ -303,6 +326,7 @@ public class OpenGLView implements View2D {
 			depthBuffer.clear();
 			BufferUtils.zeroBuffer(byteBuffer);
 			BufferUtils.zeroBuffer(depthBuffer);
+			depth = new float[801][801];
 		} else {
 			this.close();
 		}
