@@ -34,7 +34,6 @@ public class OpenGLView implements View2D {
 	private InputController controller;
 	private Drawing drawing = Drawing.NOT_DRAWING;
 	private ByteBuffer byteBuffer = BufferUtils.createByteBuffer(3 * 800 * 800);
-	private FloatBuffer depthBuffer = BufferUtils.createFloatBuffer(802 * 802);
 	private float[][] depth = new float[801][801];
 	
 	public OpenGLView(int height, int width) {
@@ -323,9 +322,7 @@ public class OpenGLView implements View2D {
 				//glViewport(0, 0, this.width, this.height);
 			//}
 			byteBuffer.clear();
-			depthBuffer.clear();
 			BufferUtils.zeroBuffer(byteBuffer);
-			BufferUtils.zeroBuffer(depthBuffer);
 			depth = new float[801][801];
 		} else {
 			this.close();
