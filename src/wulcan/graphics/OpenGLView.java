@@ -115,7 +115,11 @@ public class OpenGLView implements View2D {
 		}
 		return this.isAvailable;
 	}
-
+	
+	private Color32 getColor(double depth) {
+		return new Color32(0.9, 0.9 - (depth > 0.9 ? 0.9 : depth), 0.5);
+	}
+	
 	public boolean drawLine(Point2D p1, Point2D p2, Color32 c) {
 		if(this.isAvailable) {
 			Line2D line = new Line2D(p1, p2);
@@ -124,10 +128,10 @@ public class OpenGLView implements View2D {
 			int a = 0;
 			for(Point2D p : line) {
 				//System.out.println(p.x + " " + p.y);
-				if(depthBuffer.get(getPixel(p)) > p1.depth + zStep * a || depthBuffer.get(getPixel(p)) == 0) {
-					depthBuffer.put(getPixel(p), (float) p.depth); 
-					drawPoint(p, c);
-				}
+//				if(depthBuffer.get(getPixel(p)) > p1.depth + zStep * a || depthBuffer.get(getPixel(p)) == 0) {
+//					depthBuffer.put(getPixel(p), (float) p.depth); 
+					drawPoint(p, getColor(p1.depth + zStep * a));
+//				}
 
 				if(a > nstep)
 					System.out.println("error size");
@@ -136,7 +140,7 @@ public class OpenGLView implements View2D {
 			}
 			if(depthBuffer.get(getPixel(p2)) > p2.depth || depthBuffer.get(getPixel(p2)) == 0) {
 				depthBuffer.put(getPixel(p2), (float) p2.depth); 
-				drawPoint(p2, c);
+				drawPoint(p2, getColor(p2.depth));
 			}
 		}
 		return this.isAvailable;
