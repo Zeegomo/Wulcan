@@ -28,14 +28,20 @@ public class OpenGLView implements View2D {
 	private int height;
 	private int width;
 	private InputController controller;
-	private ByteBuffer byteBuffer = BufferUtils.createByteBuffer(3 * 800 * 800);
-	private float[][] depth = new float[801][801];
+	private ByteBuffer byteBuffer;
+	private float[][] depth;
+	private double xStep;
+	private double yStep;
 	
 	public OpenGLView(int height, int width) {
 		this.width = width;
 		this.height = height;
 		this.isAvailable = true;
 		this.init();
+		this.depth = new float[width + 2][height + 2];
+		this.byteBuffer = BufferUtils.createByteBuffer(3 * width * height);
+		this.xStep = 2.0 / width;
+		this.yStep = 2.0 / height;
 	}
 
 	public void setController(InputController controller) {
@@ -69,41 +75,34 @@ public class OpenGLView implements View2D {
 		return 0;
 	}
 	
-	private float getDepth(Point2D t) {
+	private Point2D normalizePoint(Point2D t) {
 		Point2D p = new Point2D(t);
 		p.x += 1;
 		p.x /= 2;
 		p.y += 1;
 		p.y /= 2;
+		return p;
+	}
+	
+	private float getDepth(Point2D t) {
+		Point2D p = normalizePoint(t);
 		return depth[(int) (p.x * this.width)][(int) (p.y * this.height)];
 	}
 	
 	private void setDepth(Point2D t, float f) {
-		Point2D p = new Point2D(t);
-		p.x += 1;
-		p.x /= 2;
-		p.y += 1;
-		p.y /= 2;
+		Point2D p = normalizePoint(t);
 		depth[(int) (p.x * this.width)][(int) (p.y * this.height)] = f;
 	}
 
 	public boolean drawPoint(Point2D t, Color32 c) {
 		if(this.isAvailable) {
-
-			Point2D p = new Point2D(t);
-			p.x += 1;
-			p.x /= 2;
-			p.y += 1;
-			p.y /= 2;
+			Point2D p = normalizePoint(t);
 			
 			if(p.x < 1.0 && p.y < 1.0 && p.x >= 0 && p.y >= 0) {
 			this.byteBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3, c.getRAsByte());
 			this.byteBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3 + 1 , c.getGAsByte());
 			this.byteBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 3 + 2 , c.getBAsByte());
 			}
-
-			//this.doubleBuffer = this.doubleBuffer.put((((int) (p.y * this.height)) * this.width  + (int) (p.x * this.width)) * 4 + 3, (float) 1);
-            //glEnd();
 		}
 		return this.isAvailable;
 	}
@@ -111,10 +110,10 @@ public class OpenGLView implements View2D {
 	public boolean drawPointone(Point2D t, Color32 c) {
 		if(this.isAvailable) {
 			drawPoint(t, c);
-			drawPoint(new Point2D(t.x + 0.0025, t.y + 0.0025), c);
-			drawPoint(new Point2D(t.x + 0.0025, t.y - 0.0025), c);
-			drawPoint(new Point2D(t.x - 0.0025, t.y + 0.0025), c);
-			drawPoint(new Point2D(t.x - 0.0025, t.y - 0.0025), c);
+			drawPoint(new Point2D(t.x + this.xStep, t.y + this.yStep), c);
+			drawPoint(new Point2D(t.x + this.xStep, t.y - this.yStep), c);
+			drawPoint(new Point2D(t.x - this.xStep, t.y + this.yStep), c);
+			drawPoint(new Point2D(t.x - this.xStep, t.y - this.yStep), c);
 		}
 		return this.isAvailable;
 	}
@@ -143,7 +142,6 @@ public class OpenGLView implements View2D {
 				
 			}
 			
-			
 			if(getDepth(p2) > p2.depth || getDepth(p2) == 0) {
 				setDepth(p2, (float) p2.depth); 
 				drawPoint(p2, /*getColor(p2.depth)*/ c);
@@ -154,7 +152,7 @@ public class OpenGLView implements View2D {
 	}
 	
 	private void triangleDrawingRoutine(Line2D l1, Line2D l2, Line2D l3, Color32 c) {
-		final double step = 2.0/800;
+		final double step = this.yStep;
 		double curr = l1.p1.y;
 		double change = l1.p2.y;
 		double last = l3.p2.y;
@@ -200,7 +198,6 @@ public class OpenGLView implements View2D {
 
 	public boolean drawTriangle(Triangle2D triangle, Color32 c, boolean filled) {
 		if(this.isAvailable) {
-			
 			//Uncomment to draw triangle vertex
 			//Color32 be = new Color32(0.9, 0.9, 0.9);
 			//drawPointone(triangle.getVertex(0), be);
@@ -218,8 +215,6 @@ public class OpenGLView implements View2D {
 			Line2D l3 = new Line2D(triangle.getVertex(l.get(0)), triangle.getVertex(l.get(2)));
 			
 			triangleDrawingRoutine(l1, l2, l3, c);
-
-			
 		}
 		return this.isAvailable;
 	}
@@ -242,11 +237,9 @@ public class OpenGLView implements View2D {
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
 		
-		
 		//require OpenGL 2.1 compatible
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-
 
 		// Create the window
 		window = glfwCreateWindow(height, width, "Hello World!", NULL, NULL);
@@ -269,7 +262,6 @@ public class OpenGLView implements View2D {
 		// Enable v-sync
 		glfwSwapInterval(1);
 		
-		
 		// Make the window visible
 		glfwShowWindow(window);
 
@@ -277,7 +269,6 @@ public class OpenGLView implements View2D {
 		glClearColor(0.80f, 1.0f, 0.80f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glfwSwapBuffers(window);
-		
 		
 		glEnable(GL_TEXTURE_2D);
 		int texture = glGenTextures();
@@ -307,7 +298,7 @@ public class OpenGLView implements View2D {
 			//}
 			byteBuffer.clear();
 			BufferUtils.zeroBuffer(byteBuffer);
-			depth = new float[801][801];
+			depth = new float[this.width + 1][this.height + 1];
 		} else {
 			this.close();
 		}
