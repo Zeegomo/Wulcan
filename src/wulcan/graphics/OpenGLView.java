@@ -179,30 +179,34 @@ public class OpenGLView implements View2D {
 			Line2D l2 = new Line2D(triangle.getVertex(l.get(1)), triangle.getVertex(l.get(2)));
 			Line2D l3 = new Line2D(triangle.getVertex(l.get(0)), triangle.getVertex(l.get(2)));
 			
-			Point2D prev1 = triangle.getVertex(0);
-			Point2D prev2 = triangle.getVertex(0);
+			Point2D prev1 = l1.p1;
+			Point2D prev2 = l3.p1;
+			Point2D currl1, currl3;
 			
 			while((curr - change) > step) {
 				curr -= step;
-				drawLine(l1.getPoint2DgivenY(curr), l3.getPoint2DgivenY(curr), c);
-				drawLine(new Point2D(l1.getPoint2DgivenY(curr).x, prev1.y, prev1.depth), prev1, c);
-				drawLine(new Point2D(l3.getPoint2DgivenY(curr).x, prev2.y, prev2.depth), prev2, c);
-				prev1 = l1.getPoint2DgivenY(curr);
-				prev2 = l3.getPoint2DgivenY(curr);
-				//System.out.println("prev1: " + prev1.x + " " + prev1.y);
-				//System.out.println("prev2: " + prev2.x + " " + prev2.y);
+				currl1 = l1.getPoint2DgivenY(curr);
+				currl3 = l3.getPoint2DgivenY(curr);
+				drawLine(currl1, currl3, c);
+				drawLine(new Point2D(currl1.x, prev1.y, prev1.depth), prev1, c);
+				drawLine(new Point2D(currl3.x, prev2.y, prev2.depth), prev2, c);
+				prev1 = currl1;
+				prev2 = currl3;
 			}
 			
-			prev1 = triangle.getVertex(1);
+			//prev1 = triangle.getVertex(1);
+			Point2D currl2;
 			
 			drawLine(l1.getPoint2DgivenY(change), l3.getPoint2DgivenY(change), c);
 			while((curr - last) > step) {
 				curr -= step;
-				drawLine(l2.getPoint2DgivenY(curr), l3.getPoint2DgivenY(curr), c);
-				drawLine(new Point2D(l2.getPoint2DgivenY(curr).x, prev1.y, prev1.depth), prev1, c);
-				drawLine(new Point2D(l3.getPoint2DgivenY(curr).x, prev2.y, prev2.depth), prev2, c);
-				prev1 = l2.getPoint2DgivenY(curr);
-				prev2 = l3.getPoint2DgivenY(curr);
+				currl2 = l2.getPoint2DgivenY(curr);
+				currl3 = l3.getPoint2DgivenY(curr);
+				drawLine(currl2, currl3, c);
+				drawLine(new Point2D(currl2.x, prev1.y, prev1.depth), prev1, c);
+				drawLine(new Point2D(currl3.x, prev2.y, prev2.depth), prev2, c);
+				prev1 = currl2;
+				prev2 = currl3;
 			}
 			drawLine(l2.getPoint2DgivenY(last), l3.getPoint2DgivenY(last), c);
 			
