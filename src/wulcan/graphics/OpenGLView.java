@@ -152,65 +152,75 @@ public class OpenGLView implements View2D {
 		}
 		return this.isAvailable;
 	}
+	
+	private void triangleDrawingRoutine(Line2D l1, Line2D l2, Line2D l3, Color32 c) {
+		final double step = 2.0/800;
+		double curr = l1.p1.y;
+		double change = l1.p2.y;
+		double last = l3.p2.y;
+		
+		Point2D prev1 = l1.p1;
+		Point2D prev2 = l3.p1;
+		Point2D currl1, currl3;
+		
+		//draw upper half of triangle
+		while((curr - change) > step) {
+			curr -= step;
+			currl1 = l1.getPoint2DgivenY(curr);
+			currl3 = l3.getPoint2DgivenY(curr);
+			drawLine(currl1, currl3, c);
+			
+			//draw leftover pixels due to aliasing
+			drawLine(new Point2D(currl1.x, prev1.y, prev1.depth), prev1, c);
+			drawLine(new Point2D(currl3.x, prev2.y, prev2.depth), prev2, c);
+			prev1 = currl1;
+			prev2 = currl3;
+		}
+		
+		//prev1 = triangle.getVertex(1);
+		Point2D currl2;
+		
+		//draw lower half of triangle
+		drawLine(l1.getPoint2DgivenY(change), l3.getPoint2DgivenY(change), c);
+		while((curr - last) > step) {
+			curr -= step;
+			currl2 = l2.getPoint2DgivenY(curr);
+			currl3 = l3.getPoint2DgivenY(curr);
+			drawLine(currl2, currl3, c);
+			
+			//draw leftover pixels due to aliasing 
+			drawLine(new Point2D(currl2.x, prev1.y, prev1.depth), prev1, c);
+			drawLine(new Point2D(currl3.x, prev2.y, prev2.depth), prev2, c);
+			
+			prev1 = currl2;
+			prev2 = currl3;
+		}
+		drawLine(l2.getPoint2DgivenY(last), l3.getPoint2DgivenY(last), c);
+	}
 
 	public boolean drawTriangle(Triangle2D triangle, Color32 c, boolean filled) {
 		if(this.isAvailable) {
 			
-			Color32 be = new Color32(0.9, 0.9, 0.9);
+			//Uncomment to draw triangle vertex
+			//Color32 be = new Color32(0.9, 0.9, 0.9);
 			//drawPointone(triangle.getVertex(0), be);
 			//drawPointone(triangle.getVertex(1), be);
 			//drawPointone(triangle.getVertex(2), be);
+			
 			List<Integer> l = new ArrayList<>();
 			l.add(0);
 			l.add(1);
 			l.add(2);
 			l.sort((a, b) -> Double.compare(triangle.getVertex(b).y, triangle.getVertex(a).y));
-
-			//drawLine(triangle.getVertex(0), triangle.getVertex(1), be);
-			//drawLine(triangle.getVertex(1), triangle.getVertex(2), be);
-			//drawLine(triangle.getVertex(0), triangle.getVertex(2), be);
-			final double step = 2.0/800;
-			
-			double curr = triangle.getVertex(l.get(0)).y;
-			double change = triangle.getVertex(l.get(1)).y;
-			double last = triangle.getVertex(l.get(2)).y;
 			
 			Line2D l1 = new Line2D(triangle.getVertex(l.get(0)), triangle.getVertex(l.get(1)));
 			Line2D l2 = new Line2D(triangle.getVertex(l.get(1)), triangle.getVertex(l.get(2)));
 			Line2D l3 = new Line2D(triangle.getVertex(l.get(0)), triangle.getVertex(l.get(2)));
 			
-			Point2D prev1 = l1.p1;
-			Point2D prev2 = l3.p1;
-			Point2D currl1, currl3;
+			triangleDrawingRoutine(l1, l2, l3, c);
+
 			
-			while((curr - change) > step) {
-				curr -= step;
-				currl1 = l1.getPoint2DgivenY(curr);
-				currl3 = l3.getPoint2DgivenY(curr);
-				drawLine(currl1, currl3, c);
-				drawLine(new Point2D(currl1.x, prev1.y, prev1.depth), prev1, c);
-				drawLine(new Point2D(currl3.x, prev2.y, prev2.depth), prev2, c);
-				prev1 = currl1;
-				prev2 = currl3;
-			}
-			
-			//prev1 = triangle.getVertex(1);
-			Point2D currl2;
-			
-			drawLine(l1.getPoint2DgivenY(change), l3.getPoint2DgivenY(change), c);
-			while((curr - last) > step) {
-				curr -= step;
-				currl2 = l2.getPoint2DgivenY(curr);
-				currl3 = l3.getPoint2DgivenY(curr);
-				drawLine(currl2, currl3, c);
-				drawLine(new Point2D(currl2.x, prev1.y, prev1.depth), prev1, c);
-				drawLine(new Point2D(currl3.x, prev2.y, prev2.depth), prev2, c);
-				prev1 = currl2;
-				prev2 = currl3;
-			}
-			drawLine(l2.getPoint2DgivenY(last), l3.getPoint2DgivenY(last), c);
-			
-}
+		}
 		return this.isAvailable;
 	}
 	
@@ -243,12 +253,6 @@ public class OpenGLView implements View2D {
 		if ( window == NULL )
 			throw new RuntimeException("Failed to create the GLFW window");
 
-		// Setup a key callback. It will be called every time a key is pressed, repeated or released.
-		/*glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
-			if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
-				glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
-		});*/
-
 		updateSize();
 
 		// Get the resolution of the primary monitor
@@ -259,25 +263,6 @@ public class OpenGLView implements View2D {
 			(vidmode.width() - this.width) / 2,
 			(vidmode.height() - this.height) / 2
 		);
-
-		/*// Get the thread stack and push a new frame
-		try ( MemoryStack stack = stackPush() ) {
-			IntBuffer pWidth = stack.mallocInt(1); // int*
-			IntBuffer pHeight = stack.mallocInt(1); // int*
-
-			// Get the window size passed to glfwCreateWindow
-			glfwGetWindowSize(window, pWidth, pHeight);
-
-			// Get the resolution of the primary monitor
-			GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-
-			// Center the window
-			glfwSetWindowPos(
-				window,
-				(vidmode.width() - pWidth.get(0)) / 2,
-				(vidmode.height() - pHeight.get(0)) / 2
-			);
-		} // the stack frame is popped automatically*/
 
 		// Make the OpenGL context current
 		glfwMakeContextCurrent(window);
@@ -304,15 +289,6 @@ public class OpenGLView implements View2D {
 	}
 	
 	public void nextFrame(){
-		//if(this.drawing != Drawing.NOT_DRAWING) {glEnd();this.drawing = Drawing.NOT_DRAWING;}
-		
-		/*for(int i = 0; i < 300; i++) {
-			for(int j = 0; j < 300; j++) {
-				byteBuffer = byteBuffer.put((i*300 +j)*3, (byte) 100);
-				byteBuffer = byteBuffer.put((i*300 +j)*3 + 1, (byte) 100);
-				byteBuffer = byteBuffer.put((i*300 +j)*3 + 2, (byte) 0);
-			}
-		}*/
 		
 		if (!glfwWindowShouldClose(window)) {
 			byteBuffer.flip();
