@@ -4,7 +4,7 @@ import java.util.Iterator;
 
 public class Line2D implements Iterable<Point2D>{
 	public Point2D p1, p2;
-	private Point2D tmp;
+	public Point2D tmp;
 	private double xStep,yStep;
 	private static double minStep = 2.0/800;
 	private static double delta = minStep;
