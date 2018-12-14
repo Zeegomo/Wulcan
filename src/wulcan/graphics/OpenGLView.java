@@ -33,12 +33,12 @@ public class OpenGLView implements View2D {
 	private double xStep;
 	private double yStep;
 	
-	public OpenGLView(int height, int width) {
+	public OpenGLView(int width, int height) {
 		this.width = width;
 		this.height = height;
 		this.isAvailable = true;
 		this.init();
-		this.depth = new float[width + 2][height + 2];
+		this.depth = new float[width + 5][height + 5];
 		this.byteBuffer = BufferUtils.createByteBuffer(3 * width * height);
 		this.xStep = 2.0 / width;
 		this.yStep = 2.0 / height;
@@ -242,7 +242,7 @@ public class OpenGLView implements View2D {
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
 		// Create the window
-		window = glfwCreateWindow(height, width, "Hello World!", NULL, NULL);
+		window = glfwCreateWindow(width, height, "Woolcan", NULL, NULL);
 		if ( window == NULL )
 			throw new RuntimeException("Failed to create the GLFW window");
 
@@ -298,7 +298,7 @@ public class OpenGLView implements View2D {
 			//}
 			byteBuffer.clear();
 			BufferUtils.zeroBuffer(byteBuffer);
-			depth = new float[this.width + 1][this.height + 1];
+			depth = new float[this.width + 5][this.height + 5];
 		} else {
 			this.close();
 		}
