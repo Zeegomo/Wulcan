@@ -119,7 +119,7 @@ public class OpenGLView implements View2D {
 	}
 	
 	private Color32 getDepthColor(double depth) {
-		return new Color32(0.9, 0.9 - (Math.log(depth + 1) > 0.9 ? 0.9 : Math.log(depth + 1)), 0.5);
+		return new Color32(0.9, 0.9 - (Math.log(depth/8 + 1) > 0.9 ? 0.9 : Math.log(depth/8 + 1)), 0.5);
 	}
 	
 	public boolean drawLine(Point2D p1, Point2D p2, Color32 c) {
@@ -133,7 +133,7 @@ public class OpenGLView implements View2D {
 				if(getDepth(p) > p1.depth + zStep * a || getDepth(p) == 0) {
 					//depthBuffer.put(getPixel(p), (float) p.depth); 
 					setDepth(p, (float) (p1.depth + zStep * a));
-					drawPoint(p, /*getColor(p1.depth + zStep * a)*/ c);
+					drawPoint(p, /*getDepthColor(p1.depth + zStep * a)*/ c);
 				}
 
 				if(a > nstep)
@@ -144,7 +144,7 @@ public class OpenGLView implements View2D {
 			
 			if(getDepth(p2) > p2.depth || getDepth(p2) == 0) {
 				setDepth(p2, (float) p2.depth); 
-				drawPoint(p2, /*getColor(p2.depth)*/ c);
+				drawPoint(p2, /*getDepthColor(p2.depth)*/ c);
 			
 			}
 		}

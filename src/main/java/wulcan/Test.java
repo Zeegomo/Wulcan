@@ -35,7 +35,7 @@ public class Test {
 		// Load mesh
 		Mesh monkey = new Mesh();
 		try {
-			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/castle"
+			monkey = Mesh.loadFromOBJ(new FileReader(new File("meshes/man"
 					+ ".obj")));
 		} catch (Exception e) {
 			System.err.println("Error loading file!");
